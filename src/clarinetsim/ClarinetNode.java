@@ -39,6 +39,9 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
                 // connection request failed so rollback the connection
                 connections.removeOutgoing(msg.getConnectionId());
             }
+        } else if(event instanceof DataMessage) {
+            DataMessage msg = (DataMessage) event;
+            System.out.println(msg.getData());
         }
     }
 
@@ -52,9 +55,16 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
                 }
             case 2:
                 // send message
+                sendDataMessage(node, protocolID);
                 break;
         }
-        System.out.println("Node " + node.getID() + " " + connections);
+    }
+
+    private void sendDataMessage(Node node, int protocolId) {
+        connections.randomSyncOp(e -> {
+            DataMessage msg = new DataMessage(e.getKey(), node, "Test message " + CommonState.r.nextInt());
+            sendMessage(node, e.getValue(), msg, protocolId);
+        });
     }
 
     private boolean requestConnection(Node node, int protocolID) {

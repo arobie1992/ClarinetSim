@@ -1,15 +1,17 @@
 package clarinetsim;
 
+import peersim.core.CommonState;
 import peersim.core.Node;
 
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 public class Connections {
     private long sequence = 0;
+    private long messageSeq = 0;
     private final Lock lock = new ReentrantLock();
     private final int max = 5;
     private final HashMap<String, Node> incoming = new HashMap<>();
@@ -54,5 +56,23 @@ public class Connections {
 
     @Override public String toString() {
         return "Connections{ incoming: " + incoming.keySet() + ", outgoing: " + outgoing.keySet() + " }";
+    }
+
+    public void randomSyncOp(Consumer<Map.Entry<String, Node>> op) {
+        synchronized(lock) {
+            int node = CommonState.r.nextInt(outgoing.size());
+            Map.Entry<String, Node> target = null;
+            for(Map.Entry<String, Node> e : outgoing.entrySet()) {
+                if(node == 0) {
+                    target = e;
+                    break;
+                }
+                node--;
+            }
+            if(target == null) {
+                throw new IllegalStateException();
+            }
+            op.accept(target);
+        }
     }
 }
