@@ -4,11 +4,11 @@ import peersim.core.Node;
 
 public class ConnectResponseMessage {
 
-    private final Node neighbor;
+    private final String connectionId;
     private final boolean accepted;
 
-    public ConnectResponseMessage(Node neighbor, boolean accepted) {
-        this.neighbor = neighbor;
+    public ConnectResponseMessage(String connectionId, boolean accepted) {
+        this.connectionId = connectionId;
         this.accepted = accepted;
     }
 
@@ -16,7 +16,7 @@ public class ConnectResponseMessage {
         return accepted;
     }
 
-    public Node getNeighbor() {
-        return neighbor;
+    public String getConnectionId() {
+        return connectionId;
     }
 }

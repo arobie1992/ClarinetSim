@@ -9,19 +9,13 @@ import peersim.edsim.EDProtocol;
 import peersim.transport.Transport;
 import peersim.vector.SingleValueHolder;
 
-import java.util.HashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Optional;
 
 public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDProtocol {
 
     private final String prefix;
 
-    private final Lock connectionLock = new ReentrantLock();
-
-    private final int maxConnections = 5;
-    private final HashMap<Long, Node> incomingConnections = new HashMap<>();
-    private final HashMap<Long, Node> outgoingConnections = new HashMap<>();
+    private final Connections connections = new Connections();
 
     public ClarinetNode(String prefix) {
         super(prefix);
@@ -36,51 +30,50 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
     @Override public void processEvent(Node node, int pid, Object event) {
         if(event instanceof ConnectRequestMessage) {
             ConnectRequestMessage msg = (ConnectRequestMessage) event;
-            ConnectResponseMessage resp;
-            synchronized (connectionLock) {
-                boolean hasCapacity = !atMaxConnections();
-                if(hasCapacity) {
-                    incomingConnections.put(msg.getRequestor().getID(), msg.getRequestor());
-                }
-                resp = new ConnectResponseMessage(node, hasCapacity);
-            }
+            Optional<String> connectionIdOpt = connections.addIncoming(msg.getConnectionId(), msg.getRequestor());
+            ConnectResponseMessage resp = new ConnectResponseMessage(msg.getConnectionId(), connectionIdOpt.isPresent());
             sendMessage(node, msg.getRequestor(), resp, pid);
         } else if(event instanceof ConnectResponseMessage) {
             ConnectResponseMessage msg = (ConnectResponseMessage) event;
-            synchronized (connectionLock) {
-                if(!msg.isAccepted()) {
-                    outgoingConnections.remove(msg.getNeighbor().getID());
-                }
+            if(!msg.isAccepted()) {
+                // connection request failed so rollback the connection
+                connections.removeOutgoing(msg.getConnectionId());
             }
         }
     }
 
     @Override public void nextCycle(Node node, int protocolID) {
-        requestConnection(node, protocolID);
-        System.out.println(String.format("incoming: %s, outgoing: %s", incomingConnections.keySet(), outgoingConnections.keySet()));
+        switch(CommonState.r.nextInt(2)) {
+            case 1:
+                // if connections are full, attempt a connection
+                // otherwise continue on to send a message
+                if(requestConnection(node, protocolID)) {
+                    break;
+                }
+            case 2:
+                // send message
+                break;
+        }
+        System.out.println("Node " + node.getID() + " " + connections);
     }
 
-    private void requestConnection(Node node, int protocolID) {
+    private boolean requestConnection(Node node, int protocolID) {
+        if(connections.atMax()) {
+            return false;
+        }
+
         int linkableId = FastConfig.getLinkable(protocolID);
         Linkable linkable = (Linkable) node.getProtocol(linkableId);
         if (linkable.degree() > 0) {
-            Node neighbor;
-            ConnectRequestMessage msg;
-            synchronized (connectionLock) {
-                if(atMaxConnections()) {
-                    return;
-                }
-                int neighborId = CommonState.r.nextInt(linkable.degree());
-                neighbor = linkable.getNeighbor(neighborId);
-                outgoingConnections.put(neighbor.getID(), neighbor);
-                msg = new ConnectRequestMessage(node);
-            }
+            int neighborId = CommonState.r.nextInt(linkable.degree());
+            Node neighbor = linkable.getNeighbor(neighborId);
+            // add the node to connections to reserve space
+            // this gets rolled back if it gets rejected
+            String connectionId = connections.addOutgoing(node, neighbor).orElseThrow(IllegalStateException::new);
+            ConnectRequestMessage msg = new ConnectRequestMessage(connectionId, node);
             sendMessage(node, neighbor, msg, protocolID);
         }
-    }
-
-    private boolean atMaxConnections() {
-        return incomingConnections.size() + outgoingConnections.size() == maxConnections;
+        return true;
     }
 
     private boolean sendMessage(Node node, Node neighbor, Object message, int protocolID) {
