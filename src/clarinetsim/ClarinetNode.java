@@ -47,13 +47,13 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
 
     @Override public void nextCycle(Node node, int protocolID) {
         switch(CommonState.r.nextInt(2)) {
-            case 1:
+            case 0:
                 // if connections are full, attempt a connection
                 // otherwise continue on to send a message
                 if(requestConnection(node, protocolID)) {
                     break;
                 }
-            case 2:
+            case 1:
                 // send message
                 sendDataMessage(node, protocolID);
                 break;
