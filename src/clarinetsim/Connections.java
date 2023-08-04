@@ -4,7 +4,6 @@ import peersim.core.CommonState;
 import peersim.core.Node;
 
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -58,8 +57,11 @@ public class Connections {
         return "Connections{ incoming: " + incoming.keySet() + ", outgoing: " + outgoing.keySet() + " }";
     }
 
-    public void randomSyncOp(Consumer<Map.Entry<String, Node>> op) {
+    public boolean randomOutgoingSyncOp(Consumer<Map.Entry<String, Node>> op) {
         synchronized(lock) {
+            if(outgoing.isEmpty()) {
+                return false;
+            }
             int node = CommonState.r.nextInt(outgoing.size());
             Map.Entry<String, Node> target = null;
             for(Map.Entry<String, Node> e : outgoing.entrySet()) {
@@ -73,6 +75,7 @@ public class Connections {
                 throw new IllegalStateException();
             }
             op.accept(target);
+            return true;
         }
     }
 }

@@ -61,7 +61,7 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
     }
 
     private void sendDataMessage(Node node, int protocolId) {
-        connections.randomSyncOp(e -> {
+        connections.randomOutgoingSyncOp(e -> {
             DataMessage msg = new DataMessage(e.getKey(), node, "Test message " + CommonState.r.nextInt());
             sendMessage(node, e.getValue(), msg, protocolId);
         });
