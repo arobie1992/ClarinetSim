@@ -78,7 +78,6 @@ public void nextCycle( Node node, int pid )
 * This is the standard method to define to process incoming messages.
 */
 public void processEvent( Node node, int pid, Object event ) {
-		
 	AverageMessage aem = (AverageMessage)event;
 	
 	if( aem.sender!=null )
