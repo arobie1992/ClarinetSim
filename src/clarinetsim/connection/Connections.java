@@ -10,7 +10,6 @@ import peersim.core.Node;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class Connections {
@@ -95,8 +94,14 @@ public class Connections {
             List<Connection> candidates = outgoing.values().stream().filter(c -> c.isConfirmed()).collect(Collectors.toList());
             Connection conn = candidates.get(CommonState.r.nextInt(outgoing.size()));
 
-            DataMessage msg = new DataMessage(conn.getConnectionId(), self, "Test message " + CommonState.r.nextInt());
-            CommunicationUtils.sendMessage(self, conn.getTarget(), msg, protocolId);
+            DataMessage msg = new DataMessage(
+                    conn.getConnectionId(),
+                    self,
+                    conn.getTarget(),
+                    "Test message " + CommonState.r.nextInt()
+            );
+            System.out.println("Node " + self.getID() + " sending data: " + msg.getData());
+            CommunicationUtils.sendMessage(self, conn.getWitness().get(), msg, protocolId);
             return true;
         }
     }
@@ -140,6 +145,9 @@ public class Connections {
     public boolean tryWitness(String connectionId, Node self, int protocolId) {
         synchronized(lock) {
             Connection connection = outgoing.get(connectionId);
+            if(connection == null) {
+                return false;
+            }
             List<Node> candidates = connection.getWitnessCandidates();
             if(candidates.isEmpty()) {
                 return false;
@@ -183,6 +191,16 @@ public class Connections {
                 return;
             }
             incoming.remove(connectionId);
+        }
+    }
+
+    public void forward(Node self, DataMessage msg, int protocolId) {
+        synchronized(lock) {
+            Connection connection = witnessing.get(msg.getConnectionId());
+            if(connection != null) {
+                DataMessage forwarding = new DataMessage(msg.getConnectionId(), self, connection.getTarget(), msg);
+                CommunicationUtils.sendMessage(self, connection.getTarget(), forwarding, protocolId);
+            }
         }
     }
 }

@@ -12,13 +12,16 @@ import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 import peersim.vector.SingleValueHolder;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDProtocol {
 
     private final String prefix;
     private final Connections connections = new Connections();
     private final MessageHandler messageHandler = new MessageHandler();
+    private final Map<Long, Integer> reputations = new ConcurrentHashMap<>();
 
     public ClarinetNode(String prefix) {
         super(prefix);
@@ -32,7 +35,7 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
 
     @Override public void processEvent(Node node, int pid, Object event) {
         ClarinetMessage msg = (ClarinetMessage) event;
-        msg.visit(messageHandler, new EventContext(node, pid, connections));
+        msg.visit(messageHandler, new EventContext(node, pid, connections, this));
     }
 
     @Override public void nextCycle(Node node, int protocolID) {
@@ -48,6 +51,7 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
                 connections.sendToRandomTarget(node, protocolID);
                 break;
         }
+        System.out.println("Node " + node.getID() + " reputations: " + reputations);
     }
 
     private Optional<String> requestConnection(Node node, int protocolId) {
@@ -75,5 +79,12 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
         Optional<String> connectionIdOpt = requestConnection(node, protocolId);
         connectionIdOpt.ifPresent(connectionId -> connections.tryWitness(connectionId, node, protocolId));
         return connectionIdOpt.isPresent();
+    }
+
+    public void penalize(Node node, Penalty type) {
+        reputations.compute(node.getID(), (k, v) -> {
+            int reputation = (v == null ? 100 : v);
+            return reputation - type.getValue();
+        });
     }
 }

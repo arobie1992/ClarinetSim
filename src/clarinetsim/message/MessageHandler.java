@@ -2,6 +2,7 @@ package clarinetsim.message;
 
 import clarinetsim.CommunicationUtils;
 import clarinetsim.EventContext;
+import clarinetsim.Penalty;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -20,7 +21,23 @@ public class MessageHandler {
     }
 
     public void handle(DataMessage msg, EventContext ctx) {
-        System.out.println(msg.getData());
+        if(msg.getTarget().getID() != ctx.getNode().getID()) {
+            System.out.println("Node " + ctx.getNode().getID() + " forwarding message: " + msg.getData());
+            ctx.getConnections().forward(ctx.getNode(), msg, ctx.getProtocolId());
+            if(msg.getSignature() != DataMessage.Signature.VALID) {
+                ctx.getClarinetNode().penalize(msg.getSender(), Penalty.STRONG);
+            }
+        } else {
+            if(msg.getSignature() != DataMessage.Signature.VALID) {
+                ctx.getClarinetNode().penalize(msg.getSender(), Penalty.STRONG);
+            }
+            DataMessage content = (DataMessage) msg.getData();
+            if(content.getSignature() != DataMessage.Signature.VALID) {
+                ctx.getClarinetNode().penalize(msg.getSender(), Penalty.WEAK);
+                ctx.getClarinetNode().penalize(content.getSender(), Penalty.WEAK);
+            }
+            System.out.println("Node " + ctx.getNode().getID() + " received data: " + content.getData());
+        }
     }
 
     public void handle(WitnessRequestMessage msg, EventContext ctx) {
