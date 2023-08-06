@@ -5,12 +5,12 @@ import peersim.core.Node;
 
 public class EventContext {
     private final Node node;
-    private final int processId;
+    private final int protocolId;
     private final Connections connections;
 
-    public EventContext(Node node, int processId, Connections connections) {
+    public EventContext(Node node, int protocolId, Connections connections) {
         this.node = node;
-        this.processId = processId;
+        this.protocolId = protocolId;
         this.connections = connections;
     }
 
@@ -18,8 +18,8 @@ public class EventContext {
         return node;
     }
 
-    public int getProcessId() {
-        return processId;
+    public int getProtocolId() {
+        return protocolId;
     }
 
     public Connections getConnections() {

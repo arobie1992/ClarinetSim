@@ -12,6 +12,8 @@ import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 import peersim.vector.SingleValueHolder;
 
+import java.util.Optional;
+
 public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDProtocol {
 
     private final String prefix;
@@ -38,7 +40,7 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
             case 0:
                 // if connections are full, attempt a connection
                 // otherwise continue on to send a message
-                if(requestConnection(node, protocolID)) {
+                if(connect(node, protocolID)) {
                     break;
                 }
             case 1:
@@ -48,24 +50,30 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
         }
     }
 
-    private boolean requestConnection(Node node, int protocolId) {
+    private Optional<String> requestConnection(Node node, int protocolId) {
         if(connections.atMax()) {
-            return false;
+            return Optional.empty();
         }
 
         int linkableId = FastConfig.getLinkable(protocolId);
         Linkable linkable = (Linkable) node.getProtocol(linkableId);
         if (linkable.degree() == 0) {
-            return false;
+            return Optional.empty();
         }
 
         int neighborId = CommonState.r.nextInt(linkable.degree());
         Node neighbor = linkable.getNeighbor(neighborId);
         // add the node to connections to reserve space
         // this gets rolled back if it gets rejected
-        String connectionId = connections.addOutgoing(node, neighbor).orElseThrow(IllegalStateException::new);
+        String connectionId = connections.addOutgoing(node, neighbor, protocolId).orElseThrow(IllegalStateException::new);
         ConnectRequestMessage msg = new ConnectRequestMessage(connectionId, node);
         CommunicationUtils.sendMessage(node, neighbor, msg, protocolId);
-        return true;
+        return Optional.ofNullable(connectionId);
+    }
+
+    private boolean connect(Node node, int protocolId) {
+        Optional<String> connectionIdOpt = requestConnection(node, protocolId);
+        connectionIdOpt.ifPresent(connectionId -> connections.tryWitness(connectionId, node, protocolId));
+        return connectionIdOpt.isPresent();
     }
 }
