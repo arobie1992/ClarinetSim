@@ -22,7 +22,7 @@ public class ConnectRequestMessage implements ClarinetMessage {
         return connectionId;
     }
 
-    @Override public void visit(ClarinetNode node, EventContext ctx) {
-        node.handle(this, ctx);
+    @Override public void visit(MessageHandler messageHandler, EventContext ctx) {
+        messageHandler.handle(this, ctx);
     }
 }

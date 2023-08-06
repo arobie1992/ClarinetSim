@@ -1,5 +1,7 @@
 package clarinetsim.connection;
 
+import clarinetsim.CommunicationUtils;
+import clarinetsim.message.DataMessage;
 import peersim.core.CommonState;
 import peersim.core.Node;
 
@@ -57,25 +59,24 @@ public class Connections {
         return "Connections{ incoming: " + incoming.keySet() + ", outgoing: " + outgoing.keySet() + " }";
     }
 
-    public boolean randomOutgoingSyncOp(Consumer<Map.Entry<String, Connection>> op) {
+    public boolean sendToRandomTarget(Node self, int protocolId) {
         synchronized(lock) {
             if(outgoing.isEmpty()) {
                 return false;
             }
-            int node = CommonState.r.nextInt(outgoing.size());
-            Map.Entry<String, Connection> target = null;
-            for(Map.Entry<String, Connection> e : outgoing.entrySet()) {
-                if(node == 0) {
-                    target = e;
-                    break;
-                }
-                node--;
-            }
-            if(target == null) {
-                throw new IllegalStateException();
-            }
-            op.accept(target);
+            List<Connection> candidates = outgoing.values().stream().filter(c -> c.isConfirmed()).toList();
+            Connection conn = candidates.get(CommonState.r.nextInt(outgoing.size()));
+
+            DataMessage msg = new DataMessage(conn.getConnectionId(), self, "Test message " + CommonState.r.nextInt());
+            CommunicationUtils.sendMessage(self, conn.getTarget(), msg, protocolId);
             return true;
+        }
+    }
+
+    public void confirmTarget(String connectionId) {
+        synchronized(lock) {
+            Connection connection = outgoing.get(connectionId);
+            connection.confirmTarget();
         }
     }
 }

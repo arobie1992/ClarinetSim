@@ -9,6 +9,7 @@ public class Connection {
     private final String connectionId;
     private final Node sender;
     private final Node target;
+    private boolean targetConfirmed = false;
 
     public Connection(String connectionId, Node sender, Node target) {
         this.connectionId = Objects.requireNonNull(connectionId);
@@ -26,5 +27,13 @@ public class Connection {
 
     public Node getTarget() {
         return target;
+    }
+
+    public void confirmTarget() {
+        targetConfirmed = true;
+    }
+
+    public boolean isConfirmed() {
+        return targetConfirmed;
     }
 }

@@ -1,14 +1,9 @@
 package clarinetsim.message;
 
-import clarinetsim.ClarinetNode;
 import clarinetsim.EventContext;
 import peersim.core.Node;
 
 public class DataMessage implements ClarinetMessage {
-
-    @Override public void visit(ClarinetNode node, EventContext ctx) {
-        node.handle(this, ctx);
-    }
 
     public enum Signature {
         VALID,
@@ -36,5 +31,9 @@ public class DataMessage implements ClarinetMessage {
 
     public Signature getSignature() {
         return signature;
+    }
+
+    @Override public void visit(MessageHandler messageHandler, EventContext ctx) {
+        messageHandler.handle(this, ctx);
     }
 }

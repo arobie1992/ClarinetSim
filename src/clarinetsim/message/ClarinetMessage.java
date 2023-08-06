@@ -1,8 +1,7 @@
 package clarinetsim.message;
 
-import clarinetsim.ClarinetNode;
 import clarinetsim.EventContext;
 
 public interface ClarinetMessage {
-    void visit(ClarinetNode node, EventContext ctx);
+    void visit(MessageHandler messageHandler, EventContext ctx);
 }
