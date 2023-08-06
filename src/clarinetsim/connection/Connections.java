@@ -1,4 +1,4 @@
-package clarinetsim;
+package clarinetsim.connection;
 
 import peersim.core.CommonState;
 import peersim.core.Node;
@@ -13,8 +13,8 @@ public class Connections {
     private long messageSeq = 0;
     private final Lock lock = new ReentrantLock();
     private final int max = 5;
-    private final HashMap<String, Node> incoming = new HashMap<>();
-    private final HashMap<String, Node> outgoing = new HashMap<>();
+    private final HashMap<String, Connection> incoming = new HashMap<>();
+    private final HashMap<String, Connection> outgoing = new HashMap<>();
     private int cur = 0;
 
     public boolean atMax() {
@@ -24,24 +24,24 @@ public class Connections {
     }
 
     public Optional<String> addOutgoing(Node self, Node node) {
-        return addNode(null, self, node, outgoing);
+        return addConnection(null, self, node, outgoing);
     }
 
-    public Optional<String> addIncoming(String connectionId, Node node) {
-        return addNode(connectionId, null, node, incoming);
+    public Optional<String> addIncoming(String connectionId, Node self, Node node) {
+        return addConnection(connectionId, node, self, incoming);
     }
 
-    private Optional<String> addNode(String connectionId, Node self, Node node, HashMap<String, Node> group) {
-        Objects.requireNonNull(node);
+    private Optional<String> addConnection(String connectionId, Node sender, Node target, HashMap<String, Connection> group) {
+        Objects.requireNonNull(target);
         synchronized(lock) {
             if(atMax()) {
                 return Optional.empty();
             }
             cur++;
             if(connectionId == null) {
-                connectionId = self.getID() + "-" + node.getID() + "-" + sequence++;
+                connectionId = sender.getID() + "-" + target.getID() + "-" + sequence++;
             }
-            group.put(connectionId, node);
+            group.put(connectionId, new Connection(connectionId, sender, target));
             return Optional.of(connectionId);
         }
     }
@@ -57,14 +57,14 @@ public class Connections {
         return "Connections{ incoming: " + incoming.keySet() + ", outgoing: " + outgoing.keySet() + " }";
     }
 
-    public boolean randomOutgoingSyncOp(Consumer<Map.Entry<String, Node>> op) {
+    public boolean randomOutgoingSyncOp(Consumer<Map.Entry<String, Connection>> op) {
         synchronized(lock) {
             if(outgoing.isEmpty()) {
                 return false;
             }
             int node = CommonState.r.nextInt(outgoing.size());
-            Map.Entry<String, Node> target = null;
-            for(Map.Entry<String, Node> e : outgoing.entrySet()) {
+            Map.Entry<String, Connection> target = null;
+            for(Map.Entry<String, Connection> e : outgoing.entrySet()) {
                 if(node == 0) {
                     target = e;
                     break;

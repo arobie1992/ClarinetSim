@@ -1,8 +1,10 @@
-package clarinetsim;
+package clarinetsim.message;
 
+import clarinetsim.ClarinetNode;
+import clarinetsim.EventContext;
 import peersim.core.Node;
 
-public class ConnectRequestMessage {
+public class ConnectRequestMessage implements ClarinetMessage {
 
     private final String connectionId;
     private final Node requestor;
@@ -18,5 +20,9 @@ public class ConnectRequestMessage {
 
     public String getConnectionId() {
         return connectionId;
+    }
+
+    @Override public void visit(ClarinetNode node, EventContext ctx) {
+        node.handle(this, ctx);
     }
 }
