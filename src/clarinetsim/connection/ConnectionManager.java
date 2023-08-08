@@ -75,7 +75,8 @@ public class ConnectionManager {
                     connections.release(connection);
                 },
                 // terminate the connection if we're out of candidates
-                () -> terminate(connection.connectionId(), ctx));
+                () -> terminate(connection.connectionId(), ctx)
+        );
     }
 
     public void confirmWitness(WitnessResponse response, EventContext ctx) {
@@ -107,6 +108,18 @@ public class ConnectionManager {
             connection.confirmWitness(selection.witness());
             connections.release(connection);
         });
+    }
+
+    public Optional<Connection> selectRandom(Type type) {
+        return connections.selectRandom(type);
+    }
+
+    public Optional<Connection> get(String connectionId) {
+        return connections.get(connectionId);
+    }
+
+    public void release(Connection connection) {
+        connections.release(connection);
     }
 
     /**

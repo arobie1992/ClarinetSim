@@ -1,9 +1,9 @@
 # network size
-SIZE 10
+SIZE 3
 
 # parameters of periodic execution
-CYCLES 100
-CYCLE SIZE*10
+CYCLES 5
+CYCLE SIZE*1
 
 # parameters of message transfer
 # delay values here are relative to cycle length, in percentage,

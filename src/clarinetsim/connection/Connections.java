@@ -1,5 +1,6 @@
 package clarinetsim.connection;
 
+import peersim.core.CommonState;
 import peersim.core.Node;
 
 import java.util.*;
@@ -8,30 +9,71 @@ import java.util.concurrent.locks.ReentrantLock;
 
 class Connections {
 
-    private final int max = 2;
+    private final int max = 1;
     private final Lock globalLock = new ReentrantLock();
     private final Map<String, Connection> connections = new HashMap<>();
 
     public Optional<Connection> addConnection(Node sender, Node receiver) {
-        return insertConnection(sender, null, receiver, null, State.REQUESTING_RECEIVER);
+        return insertConnection(sender, null, receiver, null, Type.OUTGOING, State.REQUESTING_RECEIVER);
     }
 
     public Optional<Connection> accept(Node sender, Node receiver, String connectionId) {
-        return insertConnection(sender, null, receiver, Objects.requireNonNull(connectionId), State.REQUESTING_WITNESS);
+        return insertConnection(
+                sender,
+                null,
+                receiver,
+                Objects.requireNonNull(connectionId),
+                Type.INCOMING,
+                State.REQUESTING_WITNESS
+        );
     }
 
     public Optional<Connection> witness(Node sender, Node witness, Node receiver, String connectionId) {
-        return insertConnection(sender, Objects.requireNonNull(witness), receiver, Objects.requireNonNull(connectionId), State.OPEN);
+        return insertConnection(
+                sender,
+                Objects.requireNonNull(witness),
+                receiver,
+                Objects.requireNonNull(connectionId),
+                Type.WITNESSING,
+                State.OPEN
+        );
     }
 
-    private Optional<Connection> insertConnection(Node sender, Node witness, Node receiver, String connectionId, State state) {
+    private Optional<Connection> insertConnection(
+            Node sender,
+            Node witness,
+            Node receiver,
+            String connectionId,
+            Type type,
+            State state
+    ) {
         Objects.requireNonNull(sender);
         Objects.requireNonNull(receiver);
+        Objects.requireNonNull(type);
         Objects.requireNonNull(state);
         synchronized(globalLock) {
             if(connections.size() == max) {
                 return Optional.empty();
             }
+
+            switch(type) {
+                case OUTGOING -> {
+                    if(state != State.REQUESTING_RECEIVER) {
+                        throw new IllegalArgumentException(type + " must be associated with " + State.REQUESTING_RECEIVER);
+                    }
+                }
+                case INCOMING -> {
+                    if(state != State.REQUESTING_WITNESS) {
+                        throw new IllegalArgumentException(type + " must be associated with " + State.REQUESTING_WITNESS);
+                    }
+                }
+                case WITNESSING -> {
+                    if(state != State.OPEN) {
+                        throw new IllegalArgumentException(type + " must be associated with " + State.OPEN);
+                    }
+                }
+            }
+
             if(connectionId == null) {
                 if(state != State.REQUESTING_RECEIVER) {
                     String err = "null connectionId can only be provided with state " + State.REQUESTING_RECEIVER;
@@ -42,7 +84,7 @@ class Connections {
             if(witness != null && state != State.OPEN) {
                 throw new IllegalArgumentException("witness may only be provided with state " + State.OPEN);
             }
-            Connection connection = new Connection(connectionId, sender, witness, receiver, state);
+            Connection connection = new Connection(connectionId, sender, witness, receiver, type, state);
             connections.put(connectionId, connection);
             return get(connectionId);
         }
@@ -103,7 +145,19 @@ class Connections {
         }
     }
 
-    public void release(Connection connection) {
+    Optional<Connection> selectRandom(Type type) {
+        synchronized(globalLock) {
+            var outgoingConnections = connections.values().stream().filter(c -> c.type() == type).toList();
+            if(outgoingConnections.isEmpty()) {
+                return Optional.empty();
+            }
+            int connectionIndex = CommonState.r.nextInt(outgoingConnections.size());
+            Connection outgoing = outgoingConnections.get(connectionIndex);
+            return get(outgoing.connectionId());
+        }
+    }
+
+    void release(Connection connection) {
         connection.unlock();
     }
 

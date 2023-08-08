@@ -35,4 +35,15 @@ public class MessageHandler {
     public void handle(ConnectionTerminate msg, EventContext ctx) {
         ctx.connectionManager().teardown(msg.connectionId());
     }
+
+    public void handle(Data msg, EventContext ctx) {
+        ctx.connectionManager().get(msg.connectionId())
+                .map(connection -> switch(connection.type()) {
+                    // if it's outgoing, do don't anything, and just let it release subsequently
+                    case OUTGOING -> connection;
+                    case WITNESSING -> ctx.communicationManager().forward(connection, msg, ctx);
+                    case INCOMING -> ctx.communicationManager().receive(connection, msg);
+                })
+                .ifPresent(ctx.connectionManager()::release);
+    }
 }

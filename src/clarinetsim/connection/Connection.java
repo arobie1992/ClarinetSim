@@ -4,6 +4,7 @@ import peersim.core.CommonState;
 import peersim.core.Node;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -14,13 +15,17 @@ public class Connection {
     private Node witness;
     private final List<Node> witnessCandidates = new ArrayList<>();
     private final Node receiver;
+    private final Type type;
     private State state;
+    private boolean inUse = false;
+    private final AtomicInteger seqNo = new AtomicInteger();
 
-    Connection(String connectionId, Node sender, Node witness, Node receiver, State state) {
+    Connection(String connectionId, Node sender, Node witness, Node receiver, Type type, State state) {
         this.connectionId = connectionId;
         this.sender = sender;
         this.witness = witness;
         this.receiver = receiver;
+        this.type = type;
         this.state = state;
     }
 
@@ -30,7 +35,15 @@ public class Connection {
         }
     }
 
+    private void verifyPermitted() {
+        verifyAlive();
+        if(!inUse) {
+            throw new UnsupportedOperationException("Cannot perform operation on a connection that is not in use");
+        }
+    }
+
     public Optional<Node> witness() {
+        verifyPermitted();
         return Optional.ofNullable(witness);
     }
 
@@ -40,12 +53,12 @@ public class Connection {
     }
 
     public Node sender() {
-        verifyAlive();
+        verifyPermitted();
         return sender;
     }
 
     void addWitnessCandidates(Collection<Node> candidates) {
-        verifyAlive();
+        verifyPermitted();
         if(state != State.REQUESTING_WITNESS) {
             throw new UnsupportedOperationException("Can only add candidates in " + State.REQUESTING_RECEIVER);
         }
@@ -53,7 +66,7 @@ public class Connection {
     }
 
     Optional<Node> selectCandidate() {
-        verifyAlive();
+        verifyPermitted();
         if(state != State.REQUESTING_WITNESS) {
             throw new UnsupportedOperationException("Can only select witness candidates in " + State.REQUESTING_WITNESS);
         }
@@ -66,7 +79,7 @@ public class Connection {
     }
 
     void confirmWitness(Node witness) {
-        verifyAlive();
+        verifyPermitted();
         if(state != State.REQUESTING_WITNESS) {
             throw new UnsupportedOperationException("Can only confirm witness in " + State.REQUESTING_WITNESS);
         }
@@ -75,29 +88,46 @@ public class Connection {
     }
 
     public Node receiver() {
-        verifyAlive();
+        verifyPermitted();
         return receiver;
     }
 
-    void receiverConfirmed() {
+    public Type type() {
         verifyAlive();
+        return type;
+    }
+
+    public boolean canWitness() {
+        return state == State.OPEN && type == Type.WITNESSING;
+    }
+
+    void receiverConfirmed() {
+        verifyPermitted();
         if(state != State.REQUESTING_RECEIVER) {
             throw new UnsupportedOperationException("Can only call receiverConfirmed in " + State.REQUESTING_RECEIVER);
         }
         state = State.REQUESTING_WITNESS;
     }
 
+    int nextSeqNo() {
+        verifyPermitted();
+        return seqNo.getAndIncrement();
+    }
+
     void lock() {
         verifyAlive();
         lock.lock();
+        inUse = true;
     }
 
     void unlock() {
         verifyAlive();
+        inUse = false;
         lock.unlock();
     }
 
     void terminate() {
+        verifyPermitted();
         state = State.TERMINATED;
     }
 
