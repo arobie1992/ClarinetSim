@@ -1,206 +1,113 @@
 package clarinetsim.connection;
 
-import clarinetsim.CommunicationUtils;
-import clarinetsim.message.*;
-import peersim.config.FastConfig;
-import peersim.core.CommonState;
-import peersim.core.Linkable;
 import peersim.core.Node;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
-public class Connections {
-    private long sequence = 0;
-    private long messageSeq = 0;
-    private final Lock lock = new ReentrantLock();
-    private final int max = 5;
-    private final HashMap<String, Connection> incoming = new HashMap<>();
-    private final HashMap<String, Connection> outgoing = new HashMap<>();
-    private final HashMap<String, Connection> witnessing = new HashMap<>();
+class Connections {
 
-    public boolean atMax() {
-        synchronized (lock) {
-            return incoming.size() + outgoing.size() + witnessing.size() == max;
+    private final int max = 2;
+    private final Lock globalLock = new ReentrantLock();
+    private final Map<String, Connection> connections = new HashMap<>();
+
+    public Optional<Connection> addConnection(Node sender, Node receiver) {
+        return insertConnection(sender, null, receiver, null, State.REQUESTING_RECEIVER);
+    }
+
+    public Optional<Connection> accept(Node sender, Node receiver, String connectionId) {
+        return insertConnection(sender, null, receiver, Objects.requireNonNull(connectionId), State.REQUESTING_WITNESS);
+    }
+
+    public Optional<Connection> witness(Node sender, Node witness, Node receiver, String connectionId) {
+        return insertConnection(sender, Objects.requireNonNull(witness), receiver, Objects.requireNonNull(connectionId), State.OPEN);
+    }
+
+    private Optional<Connection> insertConnection(Node sender, Node witness, Node receiver, String connectionId, State state) {
+        Objects.requireNonNull(sender);
+        Objects.requireNonNull(receiver);
+        Objects.requireNonNull(state);
+        synchronized(globalLock) {
+            if(connections.size() == max) {
+                return Optional.empty();
+            }
+            if(connectionId == null) {
+                if(state != State.REQUESTING_RECEIVER) {
+                    String err = "null connectionId can only be provided with state " + State.REQUESTING_RECEIVER;
+                    throw new IllegalArgumentException(err);
+                }
+                connectionId = String.format("%s-%s-%s", sender.getID(), receiver.getID(), UUID.randomUUID());
+            }
+            if(witness != null && state != State.OPEN) {
+                throw new IllegalArgumentException("witness may only be provided with state " + State.OPEN);
+            }
+            Connection connection = new Connection(connectionId, sender, witness, receiver, state);
+            connections.put(connectionId, connection);
+            return get(connectionId);
         }
     }
 
-    public Optional<String> addOutgoing(Node self, Node node, int protocolId) {
-        synchronized(lock) {
-            return addConnection(null, self, node, outgoing).map(id -> {
-                addWitnessCandidates(id, self, protocolId);
-                return id;
-            });
+    /**
+     * Removes the connection from the list of connections and releases the lock. After calling this method, absolutely
+     * no further action with the connection is permitted. Doing so is undefined behavior. Only
+     * {@link ConnectionManager#teardown(String)} or {@link ConnectionManager#teardown(String)} should call this
+     * method.</br>
+     * </br>
+     * Callers are responsible for notifying other nodes involved in the connection of plans to terminate prior to
+     * calling this method.
+     *
+     * @param connection The connection to be removed.
+     */
+    void remove(Connection connection) {
+        Objects.requireNonNull(connection);
+        synchronized(globalLock) {
+            // to get the connection, the caller has to have locked it, so they'll have the lock on it
+            // this means we can safely remove the connection without someone else grabbing it
+            Connection removed = connections.remove(connection.connectionId());
+            if(removed != connection) {
+                // this should never happen; if it does there's a serious bug
+                throw new IllegalStateException(String.format(
+                        "Different connection removed than passed for ID %s! Passed: %s, Removed: %s",
+                        connection.connectionId(),
+                        connection,
+                        removed
+                ));
+            }
+            connection.unlock();
+            connection.terminate();
         }
     }
 
-    public Optional<String> addIncoming(String connectionId, Node self, Node node) {
-        synchronized(lock) {
-            return addConnection(connectionId, node, self, incoming).map(id -> {
-                Connection connection = incoming.get(connectionId);
-                connection.confirmTarget();
-                return id;
-            });
-        }
-    }
-
-    public Optional<String> addWitnessing(WitnessRequestMessage witnessRequestMessage, Node self) {
-        synchronized(lock) {
-            String connectionId = witnessRequestMessage.getConnectionId();
-            Node sender = witnessRequestMessage.getSender();
-            Node target = witnessRequestMessage.getTarget();
-            return addConnection(connectionId, sender, target, witnessing).map(id -> {
-                Connection connection = witnessing.get(id);
-                connection.addWitness(self);
-                return id;
-            });
-        }
-    }
-
-    private Optional<String> addConnection(String connectionId, Node sender, Node target, HashMap<String, Connection> group) {
-        Objects.requireNonNull(target);
-        if(atMax()) {
+    /**
+     * Get the {@link Connection}. This operation locks the connection, so you <i>must</i> call
+     * {@link Connections#release(Connection)} with the connection when you are finished. This is
+     * a read/write lock, so only one thread may access the connection at a time.
+     * @param connectionId The ID of the connection to get.
+     * @return the {@link Connection} with its lock obtained.
+     */
+    Optional<Connection> get(String connectionId) {
+        Objects.requireNonNull(connectionId);
+        Connection connection = connections.get(connectionId);
+        if(connection == null) {
             return Optional.empty();
         }
-        if(connectionId == null) {
-            connectionId = sender.getID() + "-" + target.getID() + "-" + sequence++;
+        connection.lock();
+        if(connections.containsKey(connectionId)) {
+            return Optional.of(connection);
+        } else {
+            // someone removed the connection between us grabbing it and obtaining the lock
+            // release the lock and return empty to honor that removal
+            connection.unlock();
+            return Optional.empty();
         }
-        group.put(connectionId, new Connection(connectionId, sender, target));
-        return Optional.of(connectionId);
     }
 
-    public boolean removeOutgoing(String connectionId) {
-        Objects.requireNonNull(connectionId);
-        synchronized(lock) {
-            return outgoing.remove(connectionId) != null;
-        }
+    public void release(Connection connection) {
+        connection.unlock();
     }
 
     @Override public String toString() {
-        return "Connections { " +
-                "incoming: " + incoming.values() +
-                ", outgoing: " + outgoing.values() +
-                ", witnessing: " + witnessing.values() +
-                " }";
-    }
-
-    public boolean sendToRandomTarget(Node self, int protocolId) {
-        synchronized(lock) {
-            if(outgoing.isEmpty()) {
-                return false;
-            }
-            List<Connection> candidates = outgoing.values().stream().filter(c -> c.isConfirmed()).collect(Collectors.toList());
-            Connection conn = candidates.get(CommonState.r.nextInt(outgoing.size()));
-
-            DataMessage msg = new DataMessage(
-                    conn.getConnectionId(),
-                    self,
-                    conn.getTarget(),
-                    "Test message " + CommonState.r.nextInt()
-            );
-            System.out.println("Node " + self.getID() + " sending data: " + msg.getData());
-            CommunicationUtils.sendMessage(self, conn.getWitness().get(), msg, protocolId);
-            return true;
-        }
-    }
-
-    public void confirmOutgoingTarget(String connectionId) {
-        synchronized(lock) {
-            Connection connection = outgoing.get(connectionId);
-            connection.confirmTarget();
-        }
-    }
-
-    public void addWitness(String connectionId, Node witness) {
-        Objects.requireNonNull(connectionId);
-        synchronized(lock) {
-            Connection connection = outgoing.get(connectionId);
-            if(connection == null) {
-                connection = incoming.get(connectionId);
-            }
-            if(connection != null) {
-                connection.addWitness(witness);
-            }
-        }
-    }
-
-    private void addWitnessCandidates(String connectionId, Node self, int protocolId) {
-        synchronized(lock) {
-            Connection connection = outgoing.get(Objects.requireNonNull(connectionId));
-            int linkableId = FastConfig.getLinkable(protocolId);
-            Linkable linkable = (Linkable) self.getProtocol(linkableId);
-            List<Node> candidates = new ArrayList<>();
-            for(int i = 0; i < linkable.degree(); i++) {
-                Node neighbor = linkable.getNeighbor(i);
-                if(neighbor.getID() != connection.getTarget().getID()) {
-                    candidates.add(neighbor);
-                }
-            }
-            connection.addWitnessCandidates(candidates);
-        }
-    }
-
-    public boolean tryWitness(String connectionId, Node self, int protocolId) {
-        synchronized(lock) {
-            Connection connection = outgoing.get(connectionId);
-            if(connection == null) {
-                return false;
-            }
-            List<Node> candidates = connection.getWitnessCandidates();
-            if(candidates.isEmpty()) {
-                return false;
-            }
-            Node candidate = candidates.get(CommonState.r.nextInt(candidates.size()));
-            WitnessRequestMessage msg = new WitnessRequestMessage(connectionId, connection.getSender(), connection.getTarget());
-            CommunicationUtils.sendMessage(self, candidate, msg, protocolId);
-            return true;
-        }
-    }
-
-    public void confirmWitness(String connectionId, Node witness) {
-        synchronized(lock) {
-            Connection connection = outgoing.get(connectionId);
-            if(connection == null) {
-                connection = incoming.get(connectionId);
-            }
-            connection.addWitness(witness);
-        }
-    }
-
-    public void notifyTargetOfWitness(Node self, int protocolId, WitnessResponseMessage msg) {
-        synchronized(lock) {
-            Connection connection = outgoing.get(msg.getConnectionId());
-            WitnessNotificationMessage notification = new WitnessNotificationMessage(msg.getConnectionId(), msg.getWitness());
-            CommunicationUtils.sendMessage(self, connection.getTarget(), notification, protocolId);
-        }
-    }
-
-    public void close(String connectionId, Node self, int protocolId) {
-        synchronized(lock) {
-            Connection connection = outgoing.remove(connectionId);
-            if(connection != null) {
-                // notify witness and target
-                ConnectionCloseMessage msg = new ConnectionCloseMessage(connectionId);
-                CommunicationUtils.sendMessage(self, connection.getTarget(), msg, protocolId);
-                connection.getWitness().ifPresent(witness -> CommunicationUtils.sendMessage(self, witness, msg, protocolId));
-                return;
-            }
-            if(witnessing.remove(connectionId) != null) {
-                return;
-            }
-            incoming.remove(connectionId);
-        }
-    }
-
-    public void forward(Node self, DataMessage msg, int protocolId) {
-        synchronized(lock) {
-            Connection connection = witnessing.get(msg.getConnectionId());
-            if(connection != null) {
-                DataMessage forwarding = new DataMessage(msg.getConnectionId(), self, connection.getTarget(), msg);
-                CommunicationUtils.sendMessage(self, connection.getTarget(), forwarding, protocolId);
-            }
-        }
+        return "Connections " + connections.values();
     }
 }

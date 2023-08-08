@@ -12,7 +12,6 @@ clean:
 release: clean all
 	rm -fr peersim-$(VER)
 	mkdir peersim-$(VER)
-	cp -r doc peersim-$(VER)
 	cp Makefile overview.html README CHANGELOG RELEASE-NOTES build.xml peersim-doclet.jar peersim-$(VER)
 	mkdir peersim-$(VER)/example
 	cp example/*.txt peersim-$(VER)/example
