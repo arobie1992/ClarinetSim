@@ -9,9 +9,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 class Connections {
 
-    private final int max = 1;
+    private final int max;
     private final Lock globalLock = new ReentrantLock();
     private final Map<String, Connection> connections = new HashMap<>();
+
+    public Connections(int max) {
+        this.max = max;
+    }
 
     public Optional<Connection> addConnection(Node sender, Node receiver) {
         return insertConnection(sender, null, receiver, null, Type.OUTGOING, State.REQUESTING_RECEIVER);
@@ -116,7 +120,6 @@ class Connections {
                         removed
                 ));
             }
-            connection.unlock();
             connection.terminate();
         }
     }

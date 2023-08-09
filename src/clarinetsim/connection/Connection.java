@@ -121,7 +121,7 @@ public class Connection {
     }
 
     void unlock() {
-        verifyAlive();
+        verifyPermitted();
         inUse = false;
         lock.unlock();
     }
@@ -129,6 +129,10 @@ public class Connection {
     void terminate() {
         verifyPermitted();
         state = State.TERMINATED;
+        // can't just call unlock because unlock verifies that it's alive, and I want
+        // to make sure the state gets updated before we release the lock
+        inUse = false;
+        lock.unlock();
     }
 
     @Override public String toString() {

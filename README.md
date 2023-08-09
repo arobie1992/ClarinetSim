@@ -23,6 +23,21 @@ To build the application run `make release` from the project root.
 
 ## Running
 
+Config values include the following:
+
+- protocol.avg.max_connections 1
+- protocol.avg.initial_reputation 100 
+- protocol.avg.min_trusted_reputation 0 
+- protocol.avg.weak_penalty_value 1 
+- protocol.avg.strong_penalty_value 3
+- protocol.avg.print_interval 1
+- protocol.avg.print_connections false
+- protocol.avg.print_log false 
+- protocol.avg.print_reputations false
+
+Values provided with them are the defaults. Using `avg` was just a matter of expedience since it worked and didn't harm
+things rather than figuring out how to set up a new protocol name. I should probably fix this.
+
 Currently, there is a hardcoded config, `configs/config-clarinet.txt`, so all you have to do is run `make run`.
 Eventually, will be switching back to passing the config.
 

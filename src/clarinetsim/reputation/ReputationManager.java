@@ -15,8 +15,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ReputationManager {
 
     private final Map<Long, Integer> reputations = new ConcurrentHashMap<>();
-    private final int initialReputation = 100;
-    private final int minTrustedReputation = 0;
+    private final int initialReputation;
+    private final int minTrustedReputation;
+    private final Penalty weakPenalty;
+    private final Penalty strongPenalty;
+
+    public ReputationManager(int initialReputation, int minTrustedReputation, int weakValue, int strongValue) {
+        this.initialReputation = initialReputation;
+        this.minTrustedReputation = minTrustedReputation;
+        this.weakPenalty = new Penalty(weakValue);
+        this.strongPenalty = new Penalty(strongValue);
+    }
 
     public boolean evaluate(Node node) {
         return reputations.computeIfAbsent(node.getID(), k -> initialReputation) >= minTrustedReputation;
@@ -31,18 +40,18 @@ public class ReputationManager {
 
     public void witnessReview(Connection connection, Data message) {
         if(message.senderSignature() != Signature.VALID) {
-            penalize(connection.sender(), Penalty.STRONG);
+            penalize(connection.sender(), strongPenalty);
         }
     }
 
     public void review(Connection connection, Data message) {
         var witness = connection.witness().orElseThrow(IllegalStateException::new);
         if(message.witnessSignature() != Signature.VALID) {
-            penalize(witness, Penalty.STRONG);
+            penalize(witness, strongPenalty);
         }
         if(message.senderSignature() != Signature.VALID) {
-            penalize(witness, Penalty.WEAK);
-            penalize(connection.sender(), Penalty.WEAK);
+            penalize(witness, weakPenalty);
+            penalize(connection.sender(), weakPenalty);
         }
     }
 
@@ -62,7 +71,7 @@ public class ReputationManager {
         // at the moment nothing further to do than log the queryForward
         var logEntryOpt = ctx.communicationManager().find(queryForward);
         if(queryForward.signature() != Signature.VALID) {
-            penalize(queryForward.forwarder(), Penalty.STRONG);
+            penalize(queryForward.forwarder(), strongPenalty);
             return;
         }
         logEntryOpt.ifPresent(logEntry -> review(queryForward.queryResponse(), logEntry, ctx));
@@ -70,15 +79,15 @@ public class ReputationManager {
 
     private void review(QueryResponse queryResponse, LogEntry logEntry, EventContext ctx) {
         if(queryResponse.signature() != Signature.VALID) {
-            penalize(queryResponse.responder(), Penalty.STRONG);
+            penalize(queryResponse.responder(), strongPenalty);
         } else if(!logEntry.message().data().equals(queryResponse.message().data())) {
             // only check the query response contents if the signature is valid
             if(directCommunication(ctx.self(), queryResponse.responder(), logEntry)) {
-                penalize(queryResponse.responder(), Penalty.STRONG);
+                penalize(queryResponse.responder(), strongPenalty);
             } else {
                 logEntry.participants().stream()
                         .filter(n -> n.getID() != ctx.self().getID())
-                        .forEach(n -> penalize(n, Penalty.WEAK));
+                        .forEach(n -> penalize(n, weakPenalty));
             }
         }
     }

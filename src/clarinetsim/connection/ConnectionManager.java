@@ -10,7 +10,11 @@ import java.util.stream.Collectors;
 
 public class ConnectionManager {
 
-    private final Connections connections = new Connections();
+    private final Connections connections;
+
+    public ConnectionManager(int maxConnections) {
+        this.connections = new Connections(maxConnections);
+    }
 
     public void requestConnection(Node sender, Node receiver, int protocolId) {
         // if it's present, we do the operations

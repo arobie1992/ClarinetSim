@@ -1,8 +1,8 @@
 # network size
-SIZE 3
+SIZE 10
 
 # parameters of periodic execution
-CYCLES 5
+CYCLES 1000
 CYCLE SIZE*1
 
 # parameters of message transfer
@@ -26,6 +26,15 @@ protocol.avg clarinetsim.ClarinetNode
 protocol.avg.linkable link
 protocol.avg.step CYCLE
 protocol.avg.transport tr
+protocol.avg.max_connections 10
+protocol.avg.initial_reputation 100
+protocol.avg.min_trusted_reputation 0
+protocol.avg.weak_penalty_value 1
+protocol.avg.strong_penalty_value 3
+protocol.avg.print_interval 1000
+protocol.avg.print_connections false
+protocol.avg.print_log false
+protocol.avg.print_reputations true
 
 protocol.urt UniformRandomTransport
 protocol.urt.mindelay (CYCLE*MINDELAY)/100
