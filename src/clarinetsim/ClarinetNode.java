@@ -18,6 +18,7 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
     private final MessageHandler messageHandler = new MessageHandler();
     private final ConnectionManager connectionManager = new ConnectionManager();
     private final CommunicationManager communicationManager = new CommunicationManager();
+    private final ReputationManager reputationManager = new ReputationManager();
 
     public ClarinetNode(String prefix) {
         super(prefix);
@@ -30,16 +31,14 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
     }
 
     @Override public void nextCycle(Node node, int protocolId) {
-        switch(CommonState.r.nextInt(2)) {
-            case 0:
-                NeighborUtils.selectRandomNeighbor(node, protocolId)
+        switch(CommonState.r.nextInt(3)) {
+            case 0 -> NeighborUtils.selectRandomNeighbor(node, protocolId)
                         .ifPresent(receiver -> connectionManager.requestConnection(node, receiver, protocolId));
-                break;
-            case 1:
-                connectionManager.selectRandom(Type.OUTGOING)
+            case 1 -> connectionManager.selectRandom(Type.OUTGOING)
                         .map(connection -> communicationManager.send(node, connection, "Test message", protocolId))
                         .ifPresent(connectionManager::release);
-                break;
+            case 2 -> communicationManager.selectRandom()
+                        .ifPresent(message -> communicationManager.query(node, message, protocolId));
         }
 //        connectionManager.printConnections(node);
         communicationManager.printLog(node);
@@ -47,6 +46,7 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
 
     @Override public void processEvent(Node node, int protocolId, Object event) {
         ClarinetMessage message = (ClarinetMessage) event;
-        message.accept(messageHandler, new EventContext(node, protocolId, connectionManager, communicationManager));
+        var ctx = new EventContext(node, protocolId, connectionManager, communicationManager, reputationManager);
+        message.accept(messageHandler, ctx);
     }
 }

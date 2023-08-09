@@ -42,8 +42,20 @@ public class MessageHandler {
                     // if it's outgoing, do don't anything, and just let it release subsequently
                     case OUTGOING -> connection;
                     case WITNESSING -> ctx.communicationManager().forward(connection, msg, ctx);
-                    case INCOMING -> ctx.communicationManager().receive(connection, msg);
+                    case INCOMING -> ctx.communicationManager().receive(connection, msg, ctx);
                 })
                 .ifPresent(ctx.connectionManager()::release);
+    }
+
+    public void handle(Query msg, EventContext ctx) {
+        ctx.communicationManager().find(msg).ifPresent(logEntry -> ctx.communicationManager().reply(msg, logEntry, ctx));
+    }
+
+    public void handle(QueryResponse msg, EventContext ctx) {
+        ctx.reputationManager().review(msg, ctx).ifPresent(r -> ctx.communicationManager().forward(r, ctx));
+    }
+
+    public void handle(QueryForward msg, EventContext ctx) {
+        ctx.reputationManager().review(msg, ctx);
     }
 }

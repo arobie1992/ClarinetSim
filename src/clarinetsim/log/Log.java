@@ -1,0 +1,79 @@
+package clarinetsim.log;
+
+import clarinetsim.connection.Connection;
+import clarinetsim.message.Data;
+import clarinetsim.message.Query;
+import clarinetsim.message.QueryForward;
+import clarinetsim.message.QueryResponse;
+import peersim.core.CommonState;
+import peersim.core.Node;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class Log {
+
+    private final Map<Key, LogEntry> log = new ConcurrentHashMap<>();
+    private final List<Query> queryLog = Collections.synchronizedList(new ArrayList<>());
+    private final List<QueryResponse> responseLog = Collections.synchronizedList(new ArrayList<>());
+    private final List<QueryForward> forwardLog = Collections.synchronizedList(new ArrayList<>());
+
+    private record Key(String connectionId, int seqNo) {
+        private Key(Data message) {
+            this(message.connectionId(), message.seqNo());
+        }
+    }
+
+    public void add(Node self, Connection connection, Data message) {
+        log.compute(new Key(message), (k, v) -> {
+           if(v != null) {
+               // this should never happen, but if it does, we need to revisit the key generation
+               throw new IllegalStateException("Encountered duplicate key for messages " + v + " and " + message);
+           }
+           var logEntry = new LogEntry(connection, message);
+           logEntry.markQueried(self);
+           return logEntry;
+        });
+    }
+
+    public void add(Query query) {
+        queryLog.add(query);
+    }
+
+    public void add(QueryResponse queryResponse) {
+        responseLog.add(queryResponse);
+    }
+
+    public void add(QueryForward queryForward) {
+        forwardLog.add(queryForward);
+    }
+
+    public Optional<LogEntry> find(String connectionId, int seqNo) {
+        return Optional.ofNullable(log.get(new Key(connectionId, seqNo)));
+    }
+
+    public Optional<LogEntry> random() {
+        if(log.isEmpty()) {
+            return Optional.empty();
+        } else {
+            var candidates = log.values().stream().filter(LogEntry::queryCandidate).toList();
+            if(candidates.isEmpty()) {
+                return Optional.empty();
+            }
+            var index = CommonState.r.nextInt(candidates.size());
+            return Optional.of(candidates.get(index));
+        }
+    }
+
+    public Optional<LogEntry> get(String connectionId, int seqNo) {
+        return Optional.of(log.get(new Key(connectionId, seqNo)));
+    }
+
+    @Override public String toString() {
+        return "Log { data: " + log
+                + ", queries: " + queryLog
+                + ", responses: " + responseLog
+                + ", forwards: " + forwardLog
+                + " }";
+    }
+}
