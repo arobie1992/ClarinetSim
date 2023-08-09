@@ -56,6 +56,7 @@ public class ConnectionManager {
         return connections.get(response.connectionId()).map(connection -> {
             connection.receiverConfirmed();
             List<Node> candidates = NeighborUtils.getAllNeighbors(ctx.self(), ctx.protocolId()).stream()
+                    .filter(n -> ctx.reputationManager().evaluate(n))
                     .filter(n -> n.getID() != connection.receiver().getID())
                     .collect(Collectors.toList());
             connection.addWitnessCandidates(candidates);

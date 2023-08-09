@@ -15,16 +15,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ReputationManager {
 
     private final Map<Long, Integer> reputations = new ConcurrentHashMap<>();
+    private final int initialReputation = 100;
+    private final int minTrustedReputation = 0;
 
-    /*
-    TODO:
-     1. Query reputation
-     2. Witness selection based on reputation
-     */
+    public boolean evaluate(Node node) {
+        return reputations.computeIfAbsent(node.getID(), k -> initialReputation) >= minTrustedReputation;
+    }
 
     private void penalize(Node node, Penalty penalty) {
         reputations.compute(node.getID(), (k, v) -> {
-            int reputation = v == null ? 100 : v;
+            int reputation = v == null ? initialReputation : v;
             return reputation - penalty.value();
         });
     }
