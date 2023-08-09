@@ -6,6 +6,7 @@ import clarinetsim.connection.Type;
 import clarinetsim.message.ClarinetMessage;
 import clarinetsim.message.EventContext;
 import clarinetsim.message.MessageHandler;
+import clarinetsim.reputation.ReputationManager;
 import peersim.cdsim.CDProtocol;
 import peersim.core.CommonState;
 import peersim.core.Node;
@@ -41,7 +42,8 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
                         .ifPresent(message -> communicationManager.query(node, message, protocolId));
         }
 //        connectionManager.printConnections(node);
-        communicationManager.printLog(node);
+//        communicationManager.printLog(node);
+        reputationManager.printReputations(node);
     }
 
     @Override public void processEvent(Node node, int protocolId, Object event) {

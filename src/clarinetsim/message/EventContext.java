@@ -1,6 +1,6 @@
 package clarinetsim.message;
 
-import clarinetsim.ReputationManager;
+import clarinetsim.reputation.ReputationManager;
 import clarinetsim.connection.CommunicationManager;
 import clarinetsim.connection.ConnectionManager;
 import peersim.core.Node;

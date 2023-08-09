@@ -4,6 +4,7 @@ import clarinetsim.NeighborUtils;
 import clarinetsim.log.Log;
 import clarinetsim.log.LogEntry;
 import clarinetsim.message.*;
+import clarinetsim.reputation.Signature;
 import peersim.core.Node;
 
 import java.util.Optional;
@@ -15,7 +16,7 @@ public class CommunicationManager {
     public Connection send(Node self, Connection connection, String message, int protocolId) {
         Node witness = connection.witness()
                 .orElseThrow(() -> new UnsupportedOperationException("Cannot send on connection without witness selected"));
-        Data msg = new Data(connection.connectionId(), connection.nextSeqNo(), message);
+        Data msg = new Data(connection.connectionId(), connection.nextSeqNo(), message, Signature.VALID);
         NeighborUtils.send(self, witness, msg, protocolId);
         log.add(self, connection, msg);
         return connection;
@@ -24,7 +25,9 @@ public class CommunicationManager {
     public Connection forward(Connection connection, Data message, EventContext ctx) {
         // we want to log the message even if we don't forward it as a record of us getting it
         log.add(ctx.self(), connection, message);
+        ctx.reputationManager().witnessReview(connection, message);
         if(connection.canWitness()) {
+            message.witnessSign();
             NeighborUtils.send(connection.receiver(), message, ctx);
         }
         return connection;
@@ -49,7 +52,7 @@ public class CommunicationManager {
 
     public Connection receive(Connection connection, Data message, EventContext ctx) {
         log.add(ctx.self(), connection, message);
-        // at the moment no reason to need to check if it can receive
+        ctx.reputationManager().review(connection, message);
         return connection;
     }
 
