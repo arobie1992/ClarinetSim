@@ -1,6 +1,7 @@
 package clarinetsim.reputation;
 
 import clarinetsim.connection.Connection;
+import clarinetsim.log.LogEntry;
 import clarinetsim.message.Data;
 import clarinetsim.message.EventContext;
 import clarinetsim.message.QueryForward;
@@ -50,10 +51,37 @@ public class ReputationManager {
                 .find(queryResponse)
                 // if we didn't find a matching log entry, someone sent us one erroneously so don't return anything
                 .map(logEntry -> {
+                    if(queryResponse.signature() != Signature.VALID) {
+                        penalize(queryResponse.responder(), Penalty.STRONG);
+                    } else if(!logEntry.message().data().equals(queryResponse.message().data())) {
+                        // only check the query response contents if the signature is valid
+                        if(directCommunication(ctx.self(), queryResponse.responder(), logEntry)) {
+                            penalize(queryResponse.responder(), Penalty.STRONG);
+                        } else {
+                            logEntry.participants().stream()
+                                    .filter(n -> n.getID() != ctx.self().getID())
+                                    .forEach(n -> penalize(n, Penalty.WEAK));
+                        }
+                    }
                     // this is idempotent, so it doesn't matter if multiple threads perform it simultaneously
                     logEntry.markQueried(queryResponse.responder());
                     return queryResponse;
                 });
+    }
+
+    private boolean directCommunication(Node self, Node responder, LogEntry logEntry) {
+        int selfPos = -1;
+        int responderPos = -1;
+        var participants = logEntry.participants();
+        for(int i = 0; i < participants.size() && selfPos == -1 && responderPos == -1; i++) {
+            var participant = participants.get(i);
+            if(participant.getID() == self.getID()) {
+                selfPos = i;
+            } else if(participant.getID() == responder.getID()) {
+                responderPos = i;
+            }
+        }
+        return Math.abs(selfPos - responderPos) == 1;
     }
 
     public void review(QueryForward queryForward, EventContext ctx) {

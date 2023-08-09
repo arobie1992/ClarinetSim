@@ -59,6 +59,12 @@ public class LogEntry {
         }
     }
 
+    /**
+     * Get a list of all the participants in the communication.</br>
+     * </br>
+     * Sender will be in position 0, witness in position 1, and receiver in position 2.
+     * @return the {@code List} of the participants.
+     */
     public List<Node> participants() {
         return List.of(sender.node, witness.node, receiver.node);
     }

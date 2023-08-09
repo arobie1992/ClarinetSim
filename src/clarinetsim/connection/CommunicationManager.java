@@ -84,7 +84,7 @@ public class CommunicationManager {
     }
 
     public void reply(Query query, LogEntry logEntry, EventContext ctx) {
-        var resp = new QueryResponse(logEntry.message(), ctx.self());
+        var resp = new QueryResponse(logEntry.message(), ctx.self(), Signature.VALID);
         NeighborUtils.send(query.querier(), resp, ctx);
         log.add(resp);
     }
