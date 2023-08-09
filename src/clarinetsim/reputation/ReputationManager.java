@@ -51,22 +51,36 @@ public class ReputationManager {
                 .find(queryResponse)
                 // if we didn't find a matching log entry, someone sent us one erroneously so don't return anything
                 .map(logEntry -> {
-                    if(queryResponse.signature() != Signature.VALID) {
-                        penalize(queryResponse.responder(), Penalty.STRONG);
-                    } else if(!logEntry.message().data().equals(queryResponse.message().data())) {
-                        // only check the query response contents if the signature is valid
-                        if(directCommunication(ctx.self(), queryResponse.responder(), logEntry)) {
-                            penalize(queryResponse.responder(), Penalty.STRONG);
-                        } else {
-                            logEntry.participants().stream()
-                                    .filter(n -> n.getID() != ctx.self().getID())
-                                    .forEach(n -> penalize(n, Penalty.WEAK));
-                        }
-                    }
+                    review(queryResponse, logEntry, ctx);
                     // this is idempotent, so it doesn't matter if multiple threads perform it simultaneously
                     logEntry.markQueried(queryResponse.responder());
                     return queryResponse;
                 });
+    }
+
+    public void review(QueryForward queryForward, EventContext ctx) {
+        // at the moment nothing further to do than log the queryForward
+        var logEntryOpt = ctx.communicationManager().find(queryForward);
+        if(queryForward.signature() != Signature.VALID) {
+            penalize(queryForward.forwarder(), Penalty.STRONG);
+            return;
+        }
+        logEntryOpt.ifPresent(logEntry -> review(queryForward.queryResponse(), logEntry, ctx));
+    }
+
+    private void review(QueryResponse queryResponse, LogEntry logEntry, EventContext ctx) {
+        if(queryResponse.signature() != Signature.VALID) {
+            penalize(queryResponse.responder(), Penalty.STRONG);
+        } else if(!logEntry.message().data().equals(queryResponse.message().data())) {
+            // only check the query response contents if the signature is valid
+            if(directCommunication(ctx.self(), queryResponse.responder(), logEntry)) {
+                penalize(queryResponse.responder(), Penalty.STRONG);
+            } else {
+                logEntry.participants().stream()
+                        .filter(n -> n.getID() != ctx.self().getID())
+                        .forEach(n -> penalize(n, Penalty.WEAK));
+            }
+        }
     }
 
     private boolean directCommunication(Node self, Node responder, LogEntry logEntry) {
@@ -82,11 +96,6 @@ public class ReputationManager {
             }
         }
         return Math.abs(selfPos - responderPos) == 1;
-    }
-
-    public void review(QueryForward queryForward, EventContext ctx) {
-        // at the moment nothing further to do than log the queryForward
-        ctx.communicationManager().find(queryForward);
     }
 
     public void printReputations(Node node) {

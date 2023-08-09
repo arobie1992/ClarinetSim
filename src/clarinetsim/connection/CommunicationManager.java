@@ -44,7 +44,7 @@ public class CommunicationManager {
                 // right now disregard it, but might be good case for penalization
                 return;
             }
-            var fwd = new QueryForward(queryResponse, ctx.self());
+            var fwd = new QueryForward(queryResponse, ctx.self(), Signature.VALID);
             NeighborUtils.send(recipient.get(0), fwd, ctx);
             log.add(fwd);
         });
