@@ -4,6 +4,8 @@ import clarinetsim.GlobalState;
 import clarinetsim.connection.CommunicationManager;
 import clarinetsim.connection.ConnectionManager;
 import clarinetsim.connection.MaliciousCommunicationManager;
+import clarinetsim.connection.MaliciousConnectionManager;
+import clarinetsim.reputation.MaliciousReputationManager;
 import clarinetsim.reputation.ReputationManager;
 import peersim.core.Node;
 
@@ -49,10 +51,9 @@ public class EventContextFactory {
                 return;
             }
             if(GlobalState.isMalicious(node)) {
-                // TODO switch these to malicious impls
-                this.connectionManager = new ConnectionManager(maxConnections);
+                this.connectionManager = new MaliciousConnectionManager(maxConnections);
                 this.communicationManager = new MaliciousCommunicationManager();
-                this.reputationManager = new ReputationManager(
+                this.reputationManager = new MaliciousReputationManager(
                         initialReputation,
                         minTrustedReputation,
                         weakPenaltyValue,
@@ -76,7 +77,7 @@ public class EventContextFactory {
         init(node);
         return new EventContext(
                 Objects.requireNonNull(node),
-                Objects.requireNonNull(protocolId),
+                protocolId,
                 connectionManager,
                 communicationManager,
                 reputationManager

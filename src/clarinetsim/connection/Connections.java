@@ -88,10 +88,20 @@ class Connections {
             if(witness != null && state != State.OPEN) {
                 throw new IllegalArgumentException("witness may only be provided with state " + State.OPEN);
             }
-            Connection connection = new Connection(connectionId, sender, witness, receiver, type, state);
+            Connection connection = createConnection(connectionId, sender, witness, receiver, type, state);
             connections.put(connectionId, connection);
             return get(connectionId);
         }
+    }
+
+    /**
+     * Override entrypoint for {@link Connections#insertConnection(Node, Node, Node, String, Type, State)}.</br>
+     * </br>
+     * This should never be called by any other method and is only to allow {@link MaliciousConnections} to customize
+     * the behavior.
+     */
+    Connection createConnection(String connectionId, Node sender, Node witness, Node receiver, Type type, State state) {
+        return new Connection(connectionId, sender, witness, receiver, type, state);
     }
 
     /**

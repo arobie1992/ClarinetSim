@@ -62,6 +62,16 @@ public class Connection {
         if(state != State.REQUESTING_WITNESS) {
             throw new UnsupportedOperationException("Can only add candidates in " + State.REQUESTING_RECEIVER);
         }
+        handleAddWitnessCandidates(candidates);
+    }
+
+    /**
+     * Override entrypoint for {@link Connection#addWitnessCandidates(Collection)}.</br>
+     * </br>
+     * This should never be called by any other method and is only to allow {@link MaliciousConnection} to customize
+     * the behavior.
+     */
+    void handleAddWitnessCandidates(Collection<Node> candidates) {
         this.witnessCandidates.addAll(candidates);
     }
 
@@ -70,6 +80,16 @@ public class Connection {
         if(state != State.REQUESTING_WITNESS) {
             throw new UnsupportedOperationException("Can only select witness candidates in " + State.REQUESTING_WITNESS);
         }
+        return handleSelectCandidate();
+    }
+
+    /**
+     * Override entrypoint for {@link Connection#selectCandidate()}.</br>
+     * </br>
+     * This should never be called by any other method and is only to allow {@link MaliciousConnection} to customize
+     * the behavior.
+     */
+    Optional<Node> handleSelectCandidate() {
         if(witnessCandidates.isEmpty()) {
             return Optional.empty();
         } else {
@@ -141,6 +161,7 @@ public class Connection {
                 ", sender: " + sender.getID() +
                 ", witness: " + (witness == null ? null : witness.getID()) +
                 ", receiver: " + receiver.getID() +
+                ", type: " + type +
                 ", state: " + state +
                 " }";
     }

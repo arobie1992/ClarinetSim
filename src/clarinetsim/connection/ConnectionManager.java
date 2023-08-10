@@ -14,7 +14,11 @@ public class ConnectionManager {
     private final Connections connections;
 
     public ConnectionManager(int maxConnections) {
-        this.connections = new Connections(maxConnections);
+        this(new Connections(maxConnections));
+    }
+
+    ConnectionManager(Connections connections) {
+        this.connections = connections;
     }
 
     public void requestConnection(Node sender, Node receiver, int protocolId) {
