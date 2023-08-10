@@ -100,7 +100,7 @@ public class ReputationManager {
         int selfPos = -1;
         int responderPos = -1;
         var participants = logEntry.participants();
-        for(int i = 0; i < participants.size() && selfPos == -1 && responderPos == -1; i++) {
+        for(int i = 0; i < participants.size() && (selfPos == -1 || responderPos == -1); i++) {
             var participant = participants.get(i);
             if(participant.getID() == self.getID()) {
                 selfPos = i;
