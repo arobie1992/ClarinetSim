@@ -35,7 +35,7 @@ protocol.avg.print_interval 3
 protocol.avg.print_connections false
 protocol.avg.print_log false
 protocol.avg.print_reputations true
-protocol.avg.num_malicious 1
+protocol.avg.num_malicious 2
 
 protocol.urt UniformRandomTransport
 protocol.urt.mindelay (CYCLE*MINDELAY)/100

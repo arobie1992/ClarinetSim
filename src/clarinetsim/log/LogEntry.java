@@ -32,6 +32,10 @@ public class LogEntry {
         return sender.node;
     }
 
+    public Node receiver() {
+        return receiver.node;
+    }
+
     boolean queryCandidate() {
         return !(sender.queried && witness.queried && receiver.queried);
     }

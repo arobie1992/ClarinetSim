@@ -38,13 +38,16 @@ public class MaliciousCommunicationManager extends CommunicationManager {
         log().add(ctx.self(), connection, message);
         ctx.reputationManager().witnessReview(connection, message);
         if(connection.canWitness()) {
+            // if the receiver is malicious, then we just want to pass the message on
             if(!GlobalState.isMalicious(connection.receiver())) {
                 /*
-                if the sender is also malicious, we cover for them
-                if the sender is not malicious, we want to try to turn them against each other
-                if the receiver is malicious, then we just want to pass the message on; will handle logging and querying later
-                 */
-                message = new Data(message.connectionId(), message.seqNo(), "falsified", Signature.INVALID);
+                if the sender is also malicious, we want to forward the "right" data but give the sender
+                deniability by altering the signature
+                if the sender is cooperative, we want to alter the message to try to turn the cooperative nodes
+                against each other
+                */
+                var data = GlobalState.isMalicious(connection.sender()) ? message.data() : "falsified";
+                message = new Data(message.connectionId(), message.seqNo(), data, Signature.INVALID);
             }
             message.witnessSign();
             NeighborUtils.send(connection.receiver(), message, ctx);
@@ -54,7 +57,9 @@ public class MaliciousCommunicationManager extends CommunicationManager {
 
     public void reply(Query query, LogEntry logEntry, EventContext ctx) {
         QueryResponse resp;
-        if(GlobalState.isMalicious(query.querier())) {
+        if(GlobalState.isMalicious(query.querier())
+                || (GlobalState.isMalicious(logEntry.sender()) && GlobalState.isMalicious(logEntry.receiver()))
+        ) {
             resp = new QueryResponse(logEntry.message(), ctx.self(), Signature.VALID);
         } else {
             var message = logEntry.message();

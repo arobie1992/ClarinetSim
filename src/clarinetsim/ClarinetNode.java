@@ -48,10 +48,10 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
         eventContextFactory.init(node);
 
         int round = printCounter.get();
-        // Node 0 is malicious
-        if(node.getID() == 1) {
+        // Nodes 0 & 2 are malicious
+        if(node.getID() == 2) {
             switch(round) {
-                case 0 -> NeighborUtils.getNeighbor(node, protocolId, 0).ifPresent(receiver ->
+                case 0 -> NeighborUtils.getNeighbor(node, protocolId, 1).ifPresent(receiver ->
                             eventContextFactory.connectionManager().requestConnection(node, receiver, protocolId));
                 case 1 -> eventContextFactory.connectionManager().selectRandom(Type.OUTGOING)
                             .map(connection -> eventContextFactory.communicationManager()
@@ -60,8 +60,8 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
                             .ifPresent(eventContextFactory.connectionManager()::release);
             }
         }
-        if((round == 3 || round == 4) && node.getID() != 0) {
-            // let the cooperative nodes query on rounds 3 and 4 so they query all their peers
+        if(round > 2 && !GlobalState.isMalicious(node)) {
+            // let the cooperative nodes query on rounds past 2 so they query all their peers
             eventContextFactory.communicationManager().selectRandom()
                     .ifPresent(logEntry -> eventContextFactory.communicationManager().query(node, logEntry, protocolId));
         }
