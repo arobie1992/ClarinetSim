@@ -1,6 +1,7 @@
 package clarinetsim.connection;
 
 import clarinetsim.NeighborUtils;
+import clarinetsim.context.EventContext;
 import clarinetsim.log.Log;
 import clarinetsim.log.LogEntry;
 import clarinetsim.message.*;

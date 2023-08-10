@@ -2,14 +2,12 @@ package clarinetsim;
 
 import clarinetsim.connection.CommunicationManager;
 import clarinetsim.connection.ConnectionManager;
-import clarinetsim.connection.Type;
 import clarinetsim.message.ClarinetMessage;
-import clarinetsim.message.EventContext;
+import clarinetsim.context.EventContext;
 import clarinetsim.message.MessageHandler;
 import clarinetsim.reputation.ReputationManager;
 import peersim.cdsim.CDProtocol;
 import peersim.config.Configuration;
-import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.edsim.EDProtocol;
 import peersim.vector.SingleValueHolder;
@@ -51,15 +49,18 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
     }
 
     @Override public void nextCycle(Node node, int protocolId) {
-        switch(CommonState.r.nextInt(3)) {
-            case 0 -> NeighborUtils.selectRandomNeighbor(node, protocolId)
-                        .ifPresent(receiver -> connectionManager.requestConnection(node, receiver, protocolId));
-            case 1 -> connectionManager.selectRandom(Type.OUTGOING)
-                        .map(connection -> communicationManager.send(node, connection, "Test message", protocolId))
-                        .ifPresent(connectionManager::release);
-            case 2 -> communicationManager.selectRandom()
-                        .ifPresent(message -> communicationManager.query(node, message, protocolId));
-        }
+        // Node 0 is malicious
+
+
+//        switch(CommonState.r.nextInt(3)) {
+//            case 0 -> NeighborUtils.selectRandomNeighbor(node, protocolId)
+//                        .ifPresent(receiver -> connectionManager.requestConnection(node, receiver, protocolId));
+//            case 1 -> connectionManager.selectRandom(Type.OUTGOING)
+//                        .map(connection -> communicationManager.send(node, connection, "Test message", protocolId))
+//                        .ifPresent(connectionManager::release);
+//            case 2 -> communicationManager.selectRandom()
+//                        .ifPresent(message -> communicationManager.query(node, message, protocolId));
+//        }
         if(printCounter.incrementAndGet() % printInterval == 0) {
             if(printConnections) {
                 connectionManager.printConnections(node);

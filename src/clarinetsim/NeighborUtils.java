@@ -1,7 +1,7 @@
 package clarinetsim;
 
 import clarinetsim.message.ClarinetMessage;
-import clarinetsim.message.EventContext;
+import clarinetsim.context.EventContext;
 import peersim.config.FastConfig;
 import peersim.core.CommonState;
 import peersim.core.Linkable;

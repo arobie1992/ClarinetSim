@@ -1,5 +1,7 @@
 package clarinetsim.message;
 
+import clarinetsim.context.EventContext;
+
 public class MessageHandler {
 
     public void handle(ConnectionRequest msg, EventContext ctx) {

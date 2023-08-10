@@ -1,5 +1,6 @@
 package clarinetsim.message;
 
+import clarinetsim.context.EventContext;
 import clarinetsim.log.LogEntry;
 import peersim.core.Node;
 

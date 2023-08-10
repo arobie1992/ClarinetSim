@@ -1,6 +1,7 @@
 package clarinetsim.message;
 
 import clarinetsim.connection.Connection;
+import clarinetsim.context.EventContext;
 import peersim.core.Node;
 
 public record WitnessRequest(Node sender, Node receiver, String connectionId) implements ClarinetMessage {

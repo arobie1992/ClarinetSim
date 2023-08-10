@@ -3,7 +3,7 @@ package clarinetsim.reputation;
 import clarinetsim.connection.Connection;
 import clarinetsim.log.LogEntry;
 import clarinetsim.message.Data;
-import clarinetsim.message.EventContext;
+import clarinetsim.context.EventContext;
 import clarinetsim.message.QueryForward;
 import clarinetsim.message.QueryResponse;
 import peersim.core.Node;

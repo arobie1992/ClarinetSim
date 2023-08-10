@@ -1,6 +1,7 @@
 package clarinetsim.connection;
 
 import clarinetsim.NeighborUtils;
+import clarinetsim.context.EventContext;
 import clarinetsim.message.*;
 import peersim.core.Node;
 

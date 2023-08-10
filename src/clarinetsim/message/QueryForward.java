@@ -1,5 +1,6 @@
 package clarinetsim.message;
 
+import clarinetsim.context.EventContext;
 import clarinetsim.reputation.Signature;
 import peersim.core.Node;
 

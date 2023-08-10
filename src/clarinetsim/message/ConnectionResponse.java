@@ -1,5 +1,6 @@
 package clarinetsim.message;
 
+import clarinetsim.context.EventContext;
 import peersim.core.Node;
 
 public record ConnectionResponse(Node sender, String connectionId, boolean accepted) implements ClarinetMessage {

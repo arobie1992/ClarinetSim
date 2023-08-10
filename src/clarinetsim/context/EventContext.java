@@ -1,4 +1,4 @@
-package clarinetsim.message;
+package clarinetsim.context;
 
 import clarinetsim.reputation.ReputationManager;
 import clarinetsim.connection.CommunicationManager;
