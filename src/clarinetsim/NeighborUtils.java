@@ -9,6 +9,7 @@ import peersim.core.Node;
 import peersim.transport.Transport;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class NeighborUtils {
 
@@ -30,10 +31,7 @@ public class NeighborUtils {
     public static Optional<Node> getNeighbor(Node node, int protocolId, int neighborId) {
         int linkableId = FastConfig.getLinkable(protocolId);
         Linkable linkable = (Linkable) node.getProtocol(linkableId);
-        if (linkable.degree() == 0) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(linkable.getNeighbor(neighborId));
+        return IntStream.range(0, linkable.degree()).mapToObj(linkable::getNeighbor).filter(n -> n.getID() == neighborId).findFirst();
     }
 
     public static Optional<Node> selectRandomNeighbor(Node node, int protocolId) {
