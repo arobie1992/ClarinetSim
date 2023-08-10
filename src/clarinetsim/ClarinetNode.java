@@ -47,10 +47,11 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
     @Override public void nextCycle(Node node, int protocolId) {
         eventContextFactory.init(node);
 
+        int round = printCounter.get();
         // Node 0 is malicious
         if(node.getID() == 1) {
-            switch(printCounter.get()) {
-                case 0 -> NeighborUtils.getNeighbor(node, protocolId, 2).ifPresent(receiver ->
+            switch(round) {
+                case 0 -> NeighborUtils.getNeighbor(node, protocolId, 0).ifPresent(receiver ->
                             eventContextFactory.connectionManager().requestConnection(node, receiver, protocolId));
                 case 1 -> eventContextFactory.connectionManager().selectRandom(Type.OUTGOING)
                             .map(connection -> eventContextFactory.communicationManager()
@@ -58,6 +59,11 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
                             )
                             .ifPresent(eventContextFactory.connectionManager()::release);
             }
+        }
+        if((round == 3 || round == 4) && node.getID() != 0) {
+            // let the cooperative nodes query on rounds 3 and 4 so they query all their peers
+            eventContextFactory.communicationManager().selectRandom()
+                    .ifPresent(logEntry -> eventContextFactory.communicationManager().query(node, logEntry, protocolId));
         }
 
 //        switch(CommonState.r.nextInt(3)) {

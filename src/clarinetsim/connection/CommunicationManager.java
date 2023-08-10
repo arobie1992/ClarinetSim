@@ -36,6 +36,10 @@ public class CommunicationManager {
 
     public void forward(QueryResponse queryResponse, EventContext ctx) {
         log.find(queryResponse.message().connectionId(), queryResponse.message().seqNo()).ifPresent(logEntry -> {
+            if(queryResponse.signature() != Signature.VALID) {
+                // only forward if the signature is valid
+                return;
+            }
             var recipient = logEntry.participants().stream()
                     .filter(node -> node.getID() != queryResponse.responder().getID())
                     .filter(node -> node.getID() != ctx.self().getID())

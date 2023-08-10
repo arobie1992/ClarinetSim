@@ -3,7 +3,10 @@ package clarinetsim.connection;
 import clarinetsim.GlobalState;
 import clarinetsim.NeighborUtils;
 import clarinetsim.context.EventContext;
+import clarinetsim.log.LogEntry;
 import clarinetsim.message.Data;
+import clarinetsim.message.Query;
+import clarinetsim.message.QueryResponse;
 import clarinetsim.reputation.Signature;
 import peersim.core.Node;
 
@@ -47,6 +50,21 @@ public class MaliciousCommunicationManager extends CommunicationManager {
             NeighborUtils.send(connection.receiver(), message, ctx);
         }
         return connection;
+    }
+
+    public void reply(Query query, LogEntry logEntry, EventContext ctx) {
+        QueryResponse resp;
+        if(GlobalState.isMalicious(query.querier())) {
+            resp = new QueryResponse(logEntry.message(), ctx.self(), Signature.VALID);
+        } else {
+            var message = logEntry.message();
+            // the malicious node can generate a valid signature for the message if it was the sender
+            var signature = logEntry.sender().getID() == ctx.self().getID() ? Signature.VALID : Signature.INVALID;
+            var falsified = new Data(message.connectionId(), message.seqNo(), "falsified", signature);
+            resp = new QueryResponse(falsified, ctx.self(), Signature.VALID);
+        }
+        NeighborUtils.send(query.querier(), resp, ctx);
+        log().add(resp);
     }
 
 }
