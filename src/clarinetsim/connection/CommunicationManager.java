@@ -35,7 +35,7 @@ public class CommunicationManager {
     }
 
     public void forward(QueryResponse queryResponse, EventContext ctx) {
-        log.get(queryResponse.message().connectionId(), queryResponse.message().seqNo()).ifPresent(logEntry -> {
+        log.find(queryResponse.message().connectionId(), queryResponse.message().seqNo()).ifPresent(logEntry -> {
             var recipient = logEntry.participants().stream()
                     .filter(node -> node.getID() != queryResponse.responder().getID())
                     .filter(node -> node.getID() != ctx.self().getID())
@@ -88,6 +88,14 @@ public class CommunicationManager {
         var resp = new QueryResponse(logEntry.message(), ctx.self(), Signature.VALID);
         NeighborUtils.send(query.querier(), resp, ctx);
         log.add(resp);
+    }
+
+    /**
+     * Access point to the log for the subclass so it can log as well
+     * @return the instance's log
+     */
+    Log log() {
+        return log;
     }
 
     public void printLog(Node node) {

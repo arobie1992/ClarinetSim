@@ -1,11 +1,9 @@
 package clarinetsim;
 
-import clarinetsim.connection.CommunicationManager;
-import clarinetsim.connection.ConnectionManager;
+import clarinetsim.connection.Type;
+import clarinetsim.context.EventContextFactory;
 import clarinetsim.message.ClarinetMessage;
-import clarinetsim.context.EventContext;
 import clarinetsim.message.MessageHandler;
-import clarinetsim.reputation.ReputationManager;
 import peersim.cdsim.CDProtocol;
 import peersim.config.Configuration;
 import peersim.core.Node;
@@ -18,9 +16,7 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
 
     private final String prefix;
     private final MessageHandler messageHandler = new MessageHandler();
-    private final ConnectionManager connectionManager;
-    private final CommunicationManager communicationManager = new CommunicationManager();
-    private final ReputationManager reputationManager;
+    private final EventContextFactory eventContextFactory;
     private final int printInterval;
     private final AtomicInteger printCounter = new AtomicInteger();
     private final boolean printConnections;
@@ -30,8 +26,8 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
     public ClarinetNode(String prefix) {
         super(prefix);
         this.prefix = prefix;
-        this.connectionManager = new ConnectionManager(Configuration.getInt(prefix + ".max_connections", 1));
-        this.reputationManager = new ReputationManager(
+        this.eventContextFactory = new EventContextFactory(
+                Configuration.getInt(prefix + ".max_connections", 1),
                 Configuration.getInt(prefix + ".initial_reputation", 100),
                 Configuration.getInt(prefix + ".min_trusted_reputation", 0),
                 Configuration.getInt(prefix + ".weak_penalty_value", 1),
@@ -49,8 +45,20 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
     }
 
     @Override public void nextCycle(Node node, int protocolId) {
-        // Node 0 is malicious
+        eventContextFactory.init(node);
 
+        // Node 0 is malicious
+        if(node.getID() == 0) {
+            switch(printCounter.get()) {
+                case 0 -> NeighborUtils.getNeighbor(node, protocolId, 1).ifPresent(receiver -> eventContextFactory
+                            .connectionManager().requestConnection(node, receiver, protocolId));
+                case 1 -> eventContextFactory.connectionManager().selectRandom(Type.OUTGOING)
+                            .map(connection -> eventContextFactory.communicationManager()
+                                    .send(node, connection, "Test message", protocolId)
+                            )
+                            .ifPresent(eventContextFactory.connectionManager()::release);
+            }
+        }
 
 //        switch(CommonState.r.nextInt(3)) {
 //            case 0 -> NeighborUtils.selectRandomNeighbor(node, protocolId)
@@ -63,20 +71,20 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
 //        }
         if(printCounter.incrementAndGet() % printInterval == 0) {
             if(printConnections) {
-                connectionManager.printConnections(node);
+                eventContextFactory.connectionManager().printConnections(node);
             }
             if(printLog) {
-                communicationManager.printLog(node);
+                eventContextFactory.communicationManager().printLog(node);
             }
             if(printReputations) {
-                reputationManager.printReputations(node);
+                eventContextFactory.reputationManager().printReputations(node);
             }
         }
     }
 
     @Override public void processEvent(Node node, int protocolId, Object event) {
         ClarinetMessage message = (ClarinetMessage) event;
-        var ctx = new EventContext(node, protocolId, connectionManager, communicationManager, reputationManager);
+        var ctx = eventContextFactory.create(node, protocolId);
         message.accept(messageHandler, ctx);
     }
 }

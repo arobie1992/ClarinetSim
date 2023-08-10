@@ -27,6 +27,15 @@ public class NeighborUtils {
         transport.send(self, destination, message, protocolId);
     }
 
+    public static Optional<Node> getNeighbor(Node node, int protocolId, int neighborId) {
+        int linkableId = FastConfig.getLinkable(protocolId);
+        Linkable linkable = (Linkable) node.getProtocol(linkableId);
+        if (linkable.degree() == 0) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(linkable.getNeighbor(neighborId));
+    }
+
     public static Optional<Node> selectRandomNeighbor(Node node, int protocolId) {
         int linkableId = FastConfig.getLinkable(protocolId);
         Linkable linkable = (Linkable) node.getProtocol(linkableId);

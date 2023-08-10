@@ -65,10 +65,6 @@ public class Log {
         }
     }
 
-    public Optional<LogEntry> get(String connectionId, int seqNo) {
-        return Optional.of(log.get(new Key(connectionId, seqNo)));
-    }
-
     @Override public String toString() {
         return "Log { data: " + log
                 + ", queries: " + queryLog

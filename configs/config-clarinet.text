@@ -2,7 +2,7 @@
 SIZE 3
 
 # parameters of periodic execution
-CYCLES 10
+CYCLES 5
 CYCLE SIZE*1
 
 # parameters of message transfer
@@ -31,10 +31,10 @@ protocol.avg.initial_reputation 100
 protocol.avg.min_trusted_reputation 0
 protocol.avg.weak_penalty_value 1
 protocol.avg.strong_penalty_value 3
-protocol.avg.print_interval 1
+protocol.avg.print_interval 3
 protocol.avg.print_connections false
-protocol.avg.print_log false
-protocol.avg.print_reputations true
+protocol.avg.print_log true
+protocol.avg.print_reputations false
 protocol.avg.num_malicious 1
 
 protocol.urt UniformRandomTransport

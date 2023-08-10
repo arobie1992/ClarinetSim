@@ -27,6 +27,11 @@ public class ReputationManager {
         this.strongPenalty = new Penalty(strongValue);
     }
 
+    /**
+     * Evalute whether the provided node is an eligible witness
+     * @param node the node to evaluate
+     * @return true if eligible; false if not
+     */
     public boolean evaluate(Node node) {
         return reputations.computeIfAbsent(node.getID(), k -> initialReputation) >= minTrustedReputation;
     }
@@ -68,7 +73,6 @@ public class ReputationManager {
     }
 
     public void review(QueryForward queryForward, EventContext ctx) {
-        // at the moment nothing further to do than log the queryForward
         var logEntryOpt = ctx.communicationManager().find(queryForward);
         if(queryForward.signature() != Signature.VALID) {
             penalize(queryForward.forwarder(), strongPenalty);
