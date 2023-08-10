@@ -48,10 +48,10 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
         eventContextFactory.init(node);
 
         // Node 0 is malicious
-        if(node.getID() == 0) {
+        if(node.getID() == 1) {
             switch(printCounter.get()) {
-                case 0 -> NeighborUtils.getNeighbor(node, protocolId, 1).ifPresent(receiver -> eventContextFactory
-                            .connectionManager().requestConnection(node, receiver, protocolId));
+                case 0 -> NeighborUtils.getNeighbor(node, protocolId, 2).ifPresent(receiver ->
+                            eventContextFactory.connectionManager().requestConnection(node, receiver, protocolId));
                 case 1 -> eventContextFactory.connectionManager().selectRandom(Type.OUTGOING)
                             .map(connection -> eventContextFactory.communicationManager()
                                     .send(node, connection, "Test message", protocolId)

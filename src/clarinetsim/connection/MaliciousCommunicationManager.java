@@ -2,6 +2,7 @@ package clarinetsim.connection;
 
 import clarinetsim.GlobalState;
 import clarinetsim.NeighborUtils;
+import clarinetsim.context.EventContext;
 import clarinetsim.message.Data;
 import clarinetsim.reputation.Signature;
 import peersim.core.Node;
@@ -26,6 +27,25 @@ public class MaliciousCommunicationManager extends CommunicationManager {
         }
         NeighborUtils.send(self, witness, msg, protocolId);
         log().add(self, connection, msg);
+        return connection;
+    }
+
+    @Override public Connection forward(Connection connection, Data message, EventContext ctx) {
+        // we want to log the message even if we don't forward it as a record of us getting it
+        log().add(ctx.self(), connection, message);
+        ctx.reputationManager().witnessReview(connection, message);
+        if(connection.canWitness()) {
+            if(!GlobalState.isMalicious(connection.receiver())) {
+                /*
+                if the sender is also malicious, we cover for them
+                if the sender is not malicious, we want to try to turn them against each other
+                if the receiver is malicious, then we just want to pass the message on; will handle logging and querying later
+                 */
+                message = new Data(message.connectionId(), message.seqNo(), "falsified", Signature.INVALID);
+            }
+            message.witnessSign();
+            NeighborUtils.send(connection.receiver(), message, ctx);
+        }
         return connection;
     }
 
