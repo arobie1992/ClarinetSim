@@ -3,7 +3,7 @@
 P2P simulator for testing Clarinet based on [PeerSim](https://peersim.sourceforge.net/). Includes some updates to make
 building and running a bit more self-contained.
 
-## Prerequisites
+## Prerequisites/Notes
 
 You will need Make installed. If you do not have it, you can find information on it 
 [here](https://www.gnu.org/software/make/).
@@ -11,6 +11,10 @@ You will need Make installed. If you do not have it, you can find information on
 You will also need a somewhat newer version of Java. This was built with Java 20, but that likely isn't necessary as
 the only relatively new feature is [records](https://blogs.oracle.com/javamagazine/post/records-come-to-java). I will
 try to update this once I have a definite version figured out.
+
+Additionally, all support scripts are written in bash since this should be accessible in some form on basically any
+operating system. The scripts should use relatively platform-agnostic features, so hopefully everything works, but I 
+can't make any promises.
 
 ## Developing
 
@@ -42,6 +46,8 @@ things rather than figuring out how to set up a new protocol name. I should prob
 
 To run a simulation run `make run {path to your cfg file}`. For example `make run ./myconfig.txt`.
 
+### Run Multiple Simulations
+
 If you would like to run a series of simulations, you can use `simulations/run-sims.sh`. The script has several sets of
 values toward the top.
 ```bash
@@ -62,10 +68,17 @@ Results of the runs are stored in the `simulations/output` directory. Files are 
 `results-{node_cnt}-{cycle_cnt}-{coeff_val}-{mal_pct}.txt`.
 
 Additionally, this means the more simulations you run, the more files will be generated, so again, be careful about
-combinatorial explosion.
+combinatorial explosion. 
 
-Note: The PeerSim random seed is commented out. If you would like to enable it, uncomment line 16 of 
+Note: The PeerSim random seed is commented out. If you would like to enable it, uncomment line 16 of
 `simulations/template.txt`.
+
+#### Monitoring Multiple Runs
+
+Since there can be a potentially large number of files, and they can take a while, the
+`simulations/watch.sh` script will print out the last file in the `results` directory in a continuous loop. This is an
+infinite loop, so it is up to you to manually stop the process. You can provide an optional integer parameter to tell
+the script how long to wait between checks in seconds, e.g., `./watch.sh 2` to check every 2 seconds.
 
 ## Metrics
 

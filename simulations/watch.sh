@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sleep_interval=${1:0}
+
 pushd "$(dirname "$0")" || exit 1
 
 last_file=""
@@ -11,6 +13,7 @@ do
     last_file="$new_last_file"
     echo "$last_file"
   fi
+  sleep "$sleep_interval"
 done
 
 
