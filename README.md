@@ -78,7 +78,7 @@ Note: The PeerSim random seed is commented out. If you would like to enable it, 
 Since there can be a potentially large number of files, and they can take a while, the
 `simulations/watch.sh` script will print out the last file in the `results` directory in a continuous loop. This is an
 infinite loop, so it is up to you to manually stop the process. You can provide an optional integer parameter to tell
-the script how long to wait between checks in seconds, e.g., `./watch.sh 2` to check every 2 seconds.
+the script how long to wait between checks in seconds, for example `./watch.sh 2` to check every 2 seconds.
 
 ## Metrics
 
