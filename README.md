@@ -34,14 +34,90 @@ Config values include the following:
 - protocol.avg.print_connections false
 - protocol.avg.print_log false 
 - protocol.avg.print_reputations false
+- protocol.avg.num_malicious 0
+- protocol.avg.metrics.print_individual false
 
 Values provided with them are the defaults. Using `avg` was just a matter of expedience since it worked and didn't harm
 things rather than figuring out how to set up a new protocol name. I should probably fix this.
 
-Currently, there is a hardcoded config, `configs/config-clarinet.txt`, so all you have to do is run `make run`.
-Eventually, will be switching back to passing the config.
+To run a simulation run `make run {path to your cfg file}`. For example `make run ./myconfig.txt`.
 
-~~To run a simulation run `make run {path to your cfg file}`. For example `make run ./myconfig.txt`.~~
+If you would like to run a series of simulations, you can use `simulations/run-sims.sh`. The script has several sets of
+values toward the top.
+```bash
+NODE_CNTS=(100 500 1000 5000) # number of nodes in the simulation
+CYCLE_CNTS=(10 100 1000 10000) # number of cycles in the simulation
+COEFF_VALS=(1 10 100 1000) # see line 6 of simulations/template.txt
+MAL_PCTS=(0 10 25 50 75 90) # percentage of malicious nodes
+```
+These are used to determine the runs, and are the best place to customize runs. Do be warned that all permutations of
+these values are tested, i.e., the total number of runs is 
+`len(NODE_CNTS) * len(CYCLE_CNTS) * len(COEFF_VALS) * len(MAL_PCTS)`, so be careful about adding a lot of values.
+
+The script generates configurations for each run and stores them in the `simulations/configs` directory. This gets 
+cleaned at the start of every run, so don't add files manually. Files are named 
+`config-{node_cnt}-{cycle_cnt}-{coeff_val}-{mal_pct}.txt`.
+
+Results of the runs are stored in the `simulations/output` directory. Files are named
+`results-{node_cnt}-{cycle_cnt}-{coeff_val}-{mal_pct}.txt`.
+
+Additionally, this means the more simulations you run, the more files will be generated, so again, be careful about
+combinatorial explosion.
+
+Note: The PeerSim random seed is commented out. If you would like to enable it, uncomment line 16 of 
+`simulations/template.txt`.
+
+## Metrics
+
+At the end of each run (or thereabouts), reputation metrics will be printed for each node. A sample is shown below.
+
+The parenthetical indicates whether the node is cooperative or malicious. The `coop` and `mal` fields are the node's own
+stats about its peers. The `repWithNeighbors` is the stats from all the peers about the node itself. The individual 
+sections can be quite long if there are a large number of nodes. You can omit these by setting 
+`protocol.avg.metrics.print_individual` to `false` in the config file. This will replace the array with `<omitted>`,
+for example `individualCoop: <omitted>`
+```
+Node 8 (cooperative) {
+    coop: {
+        average: 97
+        median: 99
+        min: 95
+        max: 100
+    }
+    mal: {
+        average: 84
+        median: 95
+        min: 71
+        max: 99
+    }
+    repWithNeighbors: {
+        average: 98
+        median: 99
+        min: 96
+        max: 100
+    }
+    individualCoop: [
+        node 4: 96
+        node 5: 99
+        node 6: 95
+        node 7: 99
+        node 9: 100
+    ]
+    individualMal: [
+        node 0: 71
+        node 1: 95
+        node 2: 99
+        node 3: 74
+    ]
+    individualRepWithNeighbors: [
+        node 4: 98
+        node 5: 100
+        node 6: 96
+        node 7: 100
+        node 9: 99
+    ]
+}
+```
 
 ## Committing
 

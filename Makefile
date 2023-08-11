@@ -27,5 +27,4 @@ release: clean all
 	cp djep-1.0.0.jar peersim-$(VER)
 
 run:
-	java -cp "$(RUN_BASE)/peersim-$(VER).jar:$(RUN_BASE)/jep-2.3.0.jar:$(RUN_BASE)/djep-1.0.0.jar" peersim.Simulator configs/config-clarinet.text
-#$(filter-out $@,$(MAKECMDGOALS))
+	java -cp "$(RUN_BASE)/peersim-$(VER).jar:$(RUN_BASE)/jep-2.3.0.jar:$(RUN_BASE)/djep-1.0.0.jar" peersim.Simulator $(filter-out $@,$(MAKECMDGOALS))

@@ -25,7 +25,7 @@ class ReputationInformation<K extends Comparable<K>> {
         withNeighbors.addAggregated(sj, "repWithNeighbors");
         coop.addIndividuals(sj, "individualCoop");
         mal.addIndividuals(sj, "individualMal");
-        withNeighbors.addIndividuals(sj, "repWithNeighbors");
+        withNeighbors.addIndividuals(sj, "individualRepWithNeighbors");
         sj.add("}");
         return sj.toString();
     }

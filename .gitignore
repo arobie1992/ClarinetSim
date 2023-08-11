@@ -2,3 +2,5 @@
 *.class
 peersim-*/
 doc/
+simulations/configs/
+simulations/output/

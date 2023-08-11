@@ -6,6 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/doc" />
       <excludeFolder url="file://$MODULE_DIR$/peersim-1.0.4" />
+      <excludeFolder url="file://$MODULE_DIR$/simulations/configs" />
+      <excludeFolder url="file://$MODULE_DIR$/simulations/output" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

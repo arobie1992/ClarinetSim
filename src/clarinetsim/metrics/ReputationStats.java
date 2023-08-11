@@ -43,7 +43,7 @@ class ReputationStats<K extends Comparable<K>> {
 
     void addIndividuals(StringJoiner sj, String name) {
         if(!Configuration.getBoolean("protocol.avg.metrics.print_individual", false)) {
-            sj.add("    "+name+": <not printed>");
+            sj.add("    "+name+": <omitted>");
         } else if(reputations.isEmpty()) {
             sj.add("    "+name+": []");
         } else {

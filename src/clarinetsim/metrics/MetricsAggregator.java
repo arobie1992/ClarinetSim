@@ -88,7 +88,8 @@ public class MetricsAggregator {
 
         for(int i = 0; i < reputationInfos.length; i++) {
             var repInfo = reputationInfos[i];
-            System.out.println("Node " + i + " " + repInfo);
+            var malInfo = GlobalState.isMalicious(i) ? " (malicious) " : " (cooperative) ";
+            System.out.println("Node " + i + malInfo + repInfo);
         }
         System.out.println("Grand Total " + totalReputationInfo);
 
