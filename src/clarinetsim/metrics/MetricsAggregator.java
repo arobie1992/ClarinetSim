@@ -5,10 +5,10 @@ import clarinetsim.context.EventContextFactory;
 import peersim.config.Configuration;
 import peersim.core.Node;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiConsumer;
 
 public class MetricsAggregator {
 
@@ -31,6 +31,7 @@ public class MetricsAggregator {
                 return;
             }
             numNodes = Configuration.getInt("SIZE");
+            eventContextFactories = new EventContextFactory[numNodes];
             numCycles = Configuration.getInt("CYCLES");
             initialized = true;
         }
@@ -51,10 +52,9 @@ public class MetricsAggregator {
     }
 
     private static void addEventContextFactory(long nodeId, EventContextFactory eventContextFactory) {
-        if(eventContextFactories == null) {
-            eventContextFactories = new EventContextFactory[numNodes];
+        if(eventContextFactories[Math.toIntExact(nodeId)] == null) {
+            eventContextFactories[Math.toIntExact(nodeId)] = eventContextFactory;
         }
-        eventContextFactories[Math.toIntExact(nodeId)] = eventContextFactory;
     }
 
     private static class IndividualReputationInformation extends ReputationInformation<Long> {}
@@ -74,17 +74,14 @@ public class MetricsAggregator {
             for(var e : eventContextFactories[i].reputationManager().reputations().entrySet()) {
                 long neighborId = e.getKey();
                 int reputation = e.getValue();
-                BiConsumer<Long, Integer> op;
-                BiConsumer<String, Integer> totalOp;
+                var totalId = i + "-" + neighborId;
                 if(GlobalState.isMalicious(neighborId)) {
-                    op = curr::addMalicious;
-                    totalOp = totalReputationInfo::addMalicious;
+                    curr.addMalicious(neighborId, reputation);
+                    totalReputationInfo.addMalicious(totalId, reputation);
                 } else {
-                    op = curr::addCooperative;
-                    totalOp = totalReputationInfo::addCooperative;
+                    curr.addCooperative(neighborId, reputation);
+                    totalReputationInfo.addCooperative(totalId, reputation);
                 }
-                op.accept(neighborId, reputation);
-                totalOp.accept(i + "-" + neighborId, reputation);
                 reputationInfos[Math.toIntExact(neighborId)].withNeighbors.add((long) i, reputation);
             }
         }
