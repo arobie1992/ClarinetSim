@@ -4,10 +4,11 @@ BASE_DIR=simulations
 CONFIGS_DIR=configs
 OUTPUT_DIR=output
 
-NODE_CNTS=(100 500 1000 5000)
+# prefix with 0s because string sorting :\
+NODE_CNTS=(0100 0500 1000 5000)
 CYCLE_CNTS=(10 100 1000 10000)
 COEFF_VALS=(1 10 100 1000)
-MAL_PCTS=(0 10 25 50 75 90)
+MAL_PCTS=(0 10 20 30 50 70 90)
 
 gen_template() {
       local num_nodes=$1
@@ -58,7 +59,7 @@ for node_cnt in "${NODE_CNTS[@]}"; do
   done
 done
 
-# run the experiment
+# run the experiments
 cd ..
 make release
 for cfg_file in "$BASE_DIR"/"$CONFIGS_DIR"/*; do
