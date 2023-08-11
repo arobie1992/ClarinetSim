@@ -49,7 +49,7 @@ To run a simulation run `make run {path to your cfg file}`. For example `make ru
 ### Run Multiple Simulations
 
 If you would like to run a series of simulations, you can use `simulations/run-sims.sh`. The script has several sets of
-values toward the top.
+values toward the top. Values here are demonstrative and not necessarily what is currently in the script.
 ```bash
 NODE_CNTS=(100 500 1000 5000) # number of nodes in the simulation
 CYCLE_CNTS=(10 100 1000 10000) # number of cycles in the simulation
@@ -64,7 +64,8 @@ The script generates configurations for each run and stores them in the `simulat
 cleaned at the start of every run, so don't add files manually. Files are named 
 `config-{node_cnt}-{cycle_cnt}-{coeff_val}-{mal_pct}.txt`.
 
-Results of the runs are stored in the `simulations/output` directory. Files are named
+Results of the runs are stored in the `simulations/output` directory. Similarly, these get cleaned at the start of every
+run, so copy any you would like to keep to a different directory. Files are named
 `results-{node_cnt}-{cycle_cnt}-{coeff_val}-{mal_pct}.txt`.
 
 Additionally, this means the more simulations you run, the more files will be generated, so again, be careful about
@@ -75,20 +76,20 @@ Note: The PeerSim random seed is commented out. If you would like to enable it, 
 
 #### Monitoring Multiple Runs
 
-Since there can be a potentially large number of files, and they can take a while, the
-`simulations/watch.sh` script will print out the last file in the `results` directory in a continuous loop. This is an
-infinite loop, so it is up to you to manually stop the process. You can provide an optional integer parameter to tell
-the script how long to wait between checks in seconds, for example `./watch.sh 2` to check every 2 seconds.
+Since there can be a potentially large number of simulations, and they can take a while, the `simulations/watch.sh` 
+script will print out the last file in the `results` directory in a continuous loop. This is an infinite loop, so it is 
+up to you to manually stop the process. You can provide an optional integer parameter to tell the script how long to 
+wait between checks in seconds, for example `./watch.sh 2` to check every 2 seconds.
 
 ## Metrics
 
 At the end of each run (or thereabouts), reputation metrics will be printed for each node. A sample is shown below.
 
 The parenthetical indicates whether the node is cooperative or malicious. The `coop` and `mal` fields are the node's own
-stats about its peers. The `repWithNeighbors` is the stats from all the peers about the node itself. The individual 
-sections can be quite long if there are a large number of nodes. You can omit these by setting 
-`protocol.avg.metrics.print_individual` to `false` in the config file. This will replace the array with `<omitted>`,
-for example `individualCoop: <omitted>`
+stats about its peers—as you will likely see, malicious nodes do not do any reputation tracking. The `repWithNeighbors` 
+is the stats from all the peers about the node itself. The individual sections can be quite long if there are a large 
+number of nodes. You can omit these by setting `protocol.avg.metrics.print_individual` to `false` in the config file. 
+This will replace the array with `<omitted>`, for example `individualCoop: <omitted>`.
 ```
 Node 8 (cooperative) {
     coop: {
