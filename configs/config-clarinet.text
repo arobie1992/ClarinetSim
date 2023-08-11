@@ -26,7 +26,7 @@ protocol.avg clarinetsim.ClarinetNode
 protocol.avg.linkable link
 protocol.avg.step CYCLE
 protocol.avg.transport tr
-protocol.avg.max_connections 1
+protocol.avg.max_connections 15
 protocol.avg.initial_reputation 100
 protocol.avg.min_trusted_reputation 0
 protocol.avg.weak_penalty_value 1
@@ -36,6 +36,7 @@ protocol.avg.print_connections false
 protocol.avg.print_log false
 protocol.avg.print_reputations false
 protocol.avg.num_malicious 4
+protocol.avg.metrics.print_individual false
 
 protocol.urt UniformRandomTransport
 protocol.urt.mindelay (CYCLE*MINDELAY)/100

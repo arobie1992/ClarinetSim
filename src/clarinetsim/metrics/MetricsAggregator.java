@@ -57,72 +57,86 @@ public class MetricsAggregator {
         eventContextFactories[Math.toIntExact(nodeId)] = eventContextFactory;
     }
 
-    private static abstract class ReputationInformation<K extends Comparable<K>> {
-        Map<K, Integer> coopReputations = new HashMap<>();
-        int coopMin = Integer.MAX_VALUE;
-        int coopMax = Integer.MIN_VALUE;
+    private static class ReputationStats<K extends Comparable<K>> {
+        Map<K, Integer> reputations = new HashMap<>();
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
 
-        Map<K, Integer> malReputations = new HashMap<>();
-        int malMin = Integer.MAX_VALUE;
-        int malMax = Integer.MIN_VALUE;
-
-        final Map<K, Integer> reputationWithOtherNodes = new HashMap<>();
-
-        void addCooperative(K neighborId, int reputation) {
-            coopReputations.put(neighborId, reputation);
-            coopMin = Math.min(coopMin, reputation);
-            coopMax = Math.max(coopMax, reputation);
+        void add(K id, int reputation) {
+            reputations.put(id, reputation);
+            min = Math.min(min, reputation);
+            max = Math.max(max, reputation);
         }
 
-        void addMalicious(K neighborId, int reputation) {
-            malReputations.put(neighborId, reputation);
-            malMin = Math.min(malMin, reputation);
-            malMax = Math.max(malMax, reputation);
-        }
-
-        @Override public String toString() {
-            var sj = new StringJoiner(System.lineSeparator());
-            sj.add("{");
-            sj.add("\tcoopAverage: " + average(coopReputations));
-            sj.add("\tcoopMedian: " + median(coopReputations));
-            sj.add("\tcoopMin: " + coopMin);
-            sj.add("\tcoopMax: " + coopMax);
-            sj.add("\tmalAverage: " + average(malReputations));
-            sj.add("\tmalMedian: " + median(malReputations));
-            sj.add("\tmalMin: " + malMin);
-            sj.add("\tmalMax: " + malMax);
-            addIndividuals(sj, "repWithPeers: ", reputationWithOtherNodes);
-            addIndividuals(sj, "individualCoop", coopReputations);
-            addIndividuals(sj, "individualMal", malReputations);
-            sj.add("}");
-            return sj.toString();
-        }
-
-        private Integer average(Map<K, Integer> reputations) {
+        private Integer average() {
             var total = reputations.values().stream().reduce(Integer::sum).orElse(null);
             return total == null ? null : total/reputations.size();
         }
 
-        private Integer median(Map<K, Integer> reputations) {
+        private Integer median() {
             var sorted = reputations.values().stream().sorted().toList();
             return sorted.isEmpty() ? null : sorted.get(sorted.size()/2);
         }
 
-        private void addIndividuals(StringJoiner sj, String name, Map<K, Integer> reputations) {
-            if(reputations.isEmpty()) {
-                sj.add("\t"+name+": []");
+        private void addAggregated(StringJoiner sj, String name) {
+            if(!reputations.isEmpty()) {
+                sj.add("    "+name+": {");
+                sj.add("        average: " + average());
+                sj.add("        median: " + median());
+                sj.add("        min: " + min);
+                sj.add("        max: " + max);
+                sj.add("    }");
             } else {
-                sj.add("\t"+name+": [");
+                sj.add("    "+name+": {}");
+            }
+        }
+
+        private void addIndividuals(StringJoiner sj, String name) {
+            if(!Configuration.getBoolean("protocol.avg.metrics.print_individual", false)) {
+                sj.add("    "+name+": <not printed>");
+            } else if(reputations.isEmpty()) {
+                sj.add("    "+name+": []");
+            } else {
+                sj.add("    "+name+": [");
                 var sorted = sorted(reputations);
                 for(var e : sorted) {
-                    sj.add("\t\tnode " + e.getKey() + ": " + e.getValue());
+                    sj.add("        node " + e.getKey() + ": " + e.getValue());
                 }
-                sj.add("\t]");
+                sj.add("    ]");
             }
         }
 
         private List<Map.Entry<K, Integer>> sorted(Map<K, Integer> map) {
             return map.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
+        }
+    }
+
+    private static class ReputationInformation<K extends Comparable<K>> {
+        final ReputationStats<K> coop = new ReputationStats<>();
+
+        final ReputationStats<K> mal = new ReputationStats<>();
+
+        final ReputationStats<K> withNeighbors = new ReputationStats<>();
+
+        void addCooperative(K neighborId, int reputation) {
+            coop.add(neighborId, reputation);
+        }
+
+        void addMalicious(K neighborId, int reputation) {
+            mal.add(neighborId, reputation);
+        }
+
+        @Override public String toString() {
+            var sj = new StringJoiner(System.lineSeparator());
+            sj.add("{");
+            coop.addAggregated(sj, "coop");
+            mal.addAggregated(sj, "mal");
+            withNeighbors.addAggregated(sj, "repWithNeighbors");
+            coop.addIndividuals(sj, "individualCoop");
+            mal.addIndividuals(sj, "individualMal");
+            withNeighbors.addIndividuals(sj, "repWithNeighbors");
+            sj.add("}");
+            return sj.toString();
         }
     }
 
@@ -138,8 +152,7 @@ public class MetricsAggregator {
             reputationInfos[i] = new IndividualReputationInformation();
         }
 
-        int numMalicious = Configuration.getInt("protocol.avg.num_malicious", 0);
-        for(int i = numMalicious; i < eventContextFactories.length; i++) {
+        for(int i = 0; i < eventContextFactories.length; i++) {
             var curr = reputationInfos[i];
             for(var e : eventContextFactories[i].reputationManager().reputations().entrySet()) {
                 long neighborId = e.getKey();
@@ -155,11 +168,11 @@ public class MetricsAggregator {
                 }
                 op.accept(neighborId, reputation);
                 totalOp.accept(i + "-" + neighborId, reputation);
-                reputationInfos[Math.toIntExact(neighborId)].reputationWithOtherNodes.put((long) i, reputation);
+                reputationInfos[Math.toIntExact(neighborId)].withNeighbors.add((long) i, reputation);
             }
         }
 
-        for(int i = numMalicious; i < reputationInfos.length; i++) {
+        for(int i = 0; i < reputationInfos.length; i++) {
             var repInfo = reputationInfos[i];
             System.out.println("Node " + i + " " + repInfo);
         }
