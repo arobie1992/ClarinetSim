@@ -141,12 +141,22 @@ public class ConnectionManager {
      * @param ctx The context of the event that led to termination.
      */
     public void terminate(String connectionId, EventContext ctx) {
-        connections.get(connectionId).ifPresent(connection -> {
-            ConnectionTerminate msg = new ConnectionTerminate(connection.connectionId());
-            NeighborUtils.send(connection.receiver(), msg, ctx);
-            connection.witness().ifPresent(witness -> NeighborUtils.send(witness, msg, ctx));
-            connections.remove(connection);
-        });
+        connections.get(connectionId).ifPresent(connection -> terminate(connection, ctx));
+    }
+
+    /**
+     * Notify nodes involved in the connection of plans to terminate and then remove the connection. Only the sender
+     * should call this method. Other participants in the connection should use
+     * {@link ConnectionManager#teardown(String)}.
+     *
+     * @param connection The connection to terminate.
+     * @param ctx The context of the event that led to termination.
+     */
+    public void terminate(Connection connection, EventContext ctx) {
+        ConnectionTerminate msg = new ConnectionTerminate(connection.connectionId());
+        NeighborUtils.send(connection.receiver(), msg, ctx);
+        connection.witness().ifPresent(witness -> NeighborUtils.send(witness, msg, ctx));
+        connections.remove(connection);
     }
 
     /**

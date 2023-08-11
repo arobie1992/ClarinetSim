@@ -29,10 +29,10 @@ public class MaliciousConnection extends Connection {
     }
 
     @Override Optional<Node> handleSelectCandidate() {
-        Node candidate;
+        Node candidate = null;
         if(!maliciousWitnessCandidates.isEmpty()) {
             candidate = maliciousWitnessCandidates.remove(CommonState.r.nextInt(maliciousWitnessCandidates.size()));
-        } else {
+        } else if(!cooperativeWitnessCandidates.isEmpty()) {
             candidate = cooperativeWitnessCandidates.remove(CommonState.r.nextInt(cooperativeWitnessCandidates.size()));
         }
         return Optional.ofNullable(candidate);

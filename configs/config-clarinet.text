@@ -1,9 +1,9 @@
 # network size
-SIZE 3
+SIZE 10
 
 # parameters of periodic execution
-CYCLES 6
-CYCLE SIZE*1
+CYCLES 100
+CYCLE SIZE*10
 
 # parameters of message transfer
 # delay values here are relative to cycle length, in percentage,
@@ -34,8 +34,8 @@ protocol.avg.strong_penalty_value 3
 protocol.avg.print_interval 3
 protocol.avg.print_connections false
 protocol.avg.print_log false
-protocol.avg.print_reputations true
-protocol.avg.num_malicious 2
+protocol.avg.print_reputations false
+protocol.avg.num_malicious 4
 
 protocol.urt UniformRandomTransport
 protocol.urt.mindelay (CYCLE*MINDELAY)/100

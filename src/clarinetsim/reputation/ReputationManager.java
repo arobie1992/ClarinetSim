@@ -1,9 +1,9 @@
 package clarinetsim.reputation;
 
 import clarinetsim.connection.Connection;
+import clarinetsim.context.EventContext;
 import clarinetsim.log.LogEntry;
 import clarinetsim.message.Data;
-import clarinetsim.context.EventContext;
 import clarinetsim.message.QueryForward;
 import clarinetsim.message.QueryResponse;
 import peersim.core.Node;
@@ -113,6 +113,10 @@ public class ReputationManager {
 
     public void printReputations(Node node) {
         System.out.println("Node " + node.getID() + " " + reputations);
+    }
+
+    public Map<Long, Integer> reputations() {
+        return reputations;
     }
 
 }
