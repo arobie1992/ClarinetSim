@@ -8,9 +8,8 @@ building and running a bit more self-contained.
 You will need Make installed. If you do not have it, you can find information on it 
 [here](https://www.gnu.org/software/make/).
 
-You will also need a somewhat newer version of Java. This was built with Java 20, but that likely isn't necessary as
-the only relatively new feature is [records](https://blogs.oracle.com/javamagazine/post/records-come-to-java). I will
-try to update this once I have a definite version figured out.
+You will also need a somewhat newer version of Java. I've verified Java 17 (LTS) works. This is the most recent LTS 
+version that will work, but if you wish to use a non-LTS version, you can likely run as old as Java 14.
 
 Additionally, all support scripts are written in bash since this should be accessible in some form on basically any
 operating system. The scripts should use relatively platform-agnostic features, so hopefully everything works, but I 
