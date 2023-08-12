@@ -11,7 +11,7 @@ do
   new_last_file="$(ls -1 output | tail -n 1)"
   if [[ "$new_last_file" != "$last_file" ]]; then
     last_file="$new_last_file"
-    echo "$last_file"
+    echo "`date`: $last_file"
   fi
   sleep "$sleep_interval"
 done
