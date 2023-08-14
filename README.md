@@ -56,9 +56,7 @@ CYCLE_CNTS=(10 100 1000 10000) # number of cycles in the simulation
 COEFF_VALS=(1 10 100 1000) # see line 6 of simulations/template.txt
 MAL_PCTS=(0 10 25 50 75 90) # percentage of malicious nodes
 ```
-These are used to determine the runs, and are the best place to customize runs. Do be warned that all permutations of
-these values are tested, i.e., the total number of runs is 
-`len(NODE_CNTS) * len(CYCLE_CNTS) * len(COEFF_VALS) * len(MAL_PCTS)`, so be careful about adding a lot of values.
+These are used to determine the runs, and are the best place to customize runs.
 
 The script generates configurations for each run and stores them in the `simulations/configs` directory. This gets 
 cleaned at the start of every run, so don't add files manually. Files are named 
@@ -74,12 +72,27 @@ combinatorial explosion.
 Note: The PeerSim random seed is commented out. If you would like to enable it, uncomment line 16 of
 `simulations/template.txt`.
 
-#### Monitoring Multiple Runs
+#### Warnings
 
-Since there can be a potentially large number of simulations, and they can take a while, the `simulations/watch.sh` 
-script will print out the last file in the `results` directory in a continuous loop. This is an infinite loop, so it is 
-up to you to manually stop the process. You can provide an optional integer parameter to tell the script how long to 
-wait between checks in seconds, for example `./watch.sh 2` to check every 2 seconds.
+- The values used by `run-sims.sh` are permuted on, so that means that the total number of runs, and subsequently config
+and results files will be `len(NODE_CNTS) * len(CYCLE_CNTS) * len(COEFF_VALS) * len(MAL_PCTS)`.
+- Larger simulations can take quite some time. This seems to be mostly dependent on the `NODE_CNTS` and `CYCLE_CNTS` 
+  values. `COEFF_VALS` and `MAL_PCTS` don't seem to have any noticeable effect. I don't recommend going past 
+  `NODE_CNT=1000` and `CYCLE_CNT=10000` unless you have some separate machine to run on with quite a bit of ram. For 
+  reference, 1000 x 10000 took about 10-15 minutes on my laptop while 5000 x 10000 took about 4 hours on a 128GB VM with
+  64GB max memory given to the Java process.
+
+#### Support Scripts
+
+- Since there can be a potentially large number of simulations, and they can take a while, the `simulations/watch.sh` 
+  script will print out the last file in the `results` directory in a continuous loop. This is an infinite loop, so it 
+  is up to you to manually stop the process. You can provide an optional integer parameter to tell the script how long 
+  to wait between checks in seconds, for example `./watch.sh 2` to check every 2 seconds.
+- The results files are essentially the STDOUT of the run, which results in some noise. The 
+  `simulations/cleanup-output.sh` will remove all this noise. To run it pass the directory with the results files you
+  want to clean as the first arg and where to output the cleaned files as the second argument. For example, with input
+  directory `output/` and cleaned directory `cleaned/`, run `./cleanup-output.sh output/ cleaned/`. Note this doesn't do
+  any sort of validation on input format, so running it on files with different contents is undefined behavior.
 
 ## Metrics
 
