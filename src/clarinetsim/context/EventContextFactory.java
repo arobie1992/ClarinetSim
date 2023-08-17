@@ -7,6 +7,7 @@ import clarinetsim.connection.MaliciousCommunicationManager;
 import clarinetsim.connection.MaliciousConnectionManager;
 import clarinetsim.reputation.MaliciousReputationManager;
 import clarinetsim.reputation.ReputationManager;
+import peersim.config.Configuration;
 import peersim.core.Node;
 
 import java.util.Objects;
@@ -15,29 +16,15 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class EventContextFactory {
 
-    private final int maxConnections;
-    private final int initialReputation;
-    private final int minTrustedReputation;
-    private final int weakPenaltyValue;
-    private final int strongPenaltyValue;
+    private final String prefix;
     private final Lock lock = new ReentrantLock();
     private volatile boolean initialized = false;
     private ConnectionManager connectionManager;
     private CommunicationManager communicationManager;
     private ReputationManager reputationManager;
 
-    public EventContextFactory(
-            int maxConnections,
-            int initialReputation,
-            int minTrustedReputation,
-            int weakPenaltyValue,
-            int strongPenaltyValue
-    ) {
-        this.maxConnections = maxConnections;
-        this.initialReputation = initialReputation;
-        this.minTrustedReputation = minTrustedReputation;
-        this.weakPenaltyValue = weakPenaltyValue;
-        this.strongPenaltyValue = strongPenaltyValue;
+    public EventContextFactory(String prefix) {
+        this.prefix = prefix;
     }
 
     public void init(Node node) {
@@ -50,24 +37,15 @@ public class EventContextFactory {
             if(initialized) {
                 return;
             }
+            int maxConnections = Configuration.getInt(prefix + ".max_connections", 1);
             if(GlobalState.isMalicious(node)) {
                 this.connectionManager = new MaliciousConnectionManager(maxConnections);
                 this.communicationManager = new MaliciousCommunicationManager();
-                this.reputationManager = new MaliciousReputationManager(
-                        initialReputation,
-                        minTrustedReputation,
-                        weakPenaltyValue,
-                        strongPenaltyValue
-                );
+                this.reputationManager = new MaliciousReputationManager(prefix);
             } else {
                 this.connectionManager = new ConnectionManager(maxConnections);
                 this.communicationManager = new CommunicationManager();
-                this.reputationManager = new ReputationManager(
-                        initialReputation,
-                        minTrustedReputation,
-                        weakPenaltyValue,
-                        strongPenaltyValue
-                );
+                this.reputationManager = new ReputationManager(prefix);
             }
             initialized = true;
         }

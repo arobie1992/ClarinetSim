@@ -10,8 +10,8 @@ import peersim.core.Node;
 import java.util.Optional;
 
 public class MaliciousReputationManager extends ReputationManager {
-    public MaliciousReputationManager(int initialReputation, int minTrustedReputation, int weakValue, int strongValue) {
-        super(initialReputation, minTrustedReputation, weakValue, strongValue);
+    public MaliciousReputationManager(String prefix) {
+        super(prefix);
     }
 
     @Override public boolean evaluate(Node node) {

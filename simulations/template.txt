@@ -27,8 +27,10 @@ protocol.avg.linkable link
 protocol.avg.step CYCLE
 protocol.avg.transport tr
 protocol.avg.max_connections 15
-protocol.avg.initial_reputation 100
-protocol.avg.min_trusted_reputation 0
+protocol.avg.reputation.min_trusted ${min_trusted}
+protocol.avg.reputation.type ${rep_scheme}
+protocol.avg.reputation.subtractive.initial 100
+protocol.avg.reputation.proportional.eval_threshold 50
 protocol.avg.weak_penalty_value 1
 protocol.avg.strong_penalty_value 3
 protocol.avg.print_interval 3
