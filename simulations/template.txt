@@ -36,7 +36,7 @@ protocol.avg.print_connections false
 protocol.avg.print_log false
 protocol.avg.print_reputations false
 protocol.avg.num_malicious ${num_mal_nodes}
-protocol.avg.metrics.print_individual true
+protocol.avg.metrics.print_individual false
 
 
 protocol.urt UniformRandomTransport
