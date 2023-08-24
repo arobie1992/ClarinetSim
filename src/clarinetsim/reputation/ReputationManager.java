@@ -6,25 +6,26 @@ import clarinetsim.log.LogEntry;
 import clarinetsim.message.Data;
 import clarinetsim.message.QueryForward;
 import clarinetsim.message.QueryResponse;
+import peersim.config.Configuration;
 import peersim.core.Node;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class ReputationManager {
 
-    private final Map<Long, Integer> reputations = new ConcurrentHashMap<>();
-    private final int initialReputation;
-    private final int minTrustedReputation;
+    private final Reputations reputations;
     private final Penalty weakPenalty;
     private final Penalty strongPenalty;
 
-    public ReputationManager(int initialReputation, int minTrustedReputation, int weakValue, int strongValue) {
-        this.initialReputation = initialReputation;
-        this.minTrustedReputation = minTrustedReputation;
-        this.weakPenalty = new Penalty(weakValue);
-        this.strongPenalty = new Penalty(strongValue);
+    public ReputationManager(String prefix) {
+        var repTypeStr = Configuration.getString(prefix + ".reputation.type", ReputationType.SUBTRACTIVE.name());
+        this.reputations = switch(ReputationType.valueOf(repTypeStr)) {
+            case SUBTRACTIVE -> new SubtractiveReputations(prefix);
+            case PROPORTIONAL -> new ProportionalReputations(prefix);
+        };
+        this.weakPenalty = new Penalty(Configuration.getInt(prefix + ".weak_penalty_value", 1));
+        this.strongPenalty = new Penalty(Configuration.getInt(prefix + ".strong_penalty_value", 3));
     }
 
     /**
@@ -33,30 +34,32 @@ public class ReputationManager {
      * @return true if eligible; false if not
      */
     public boolean evaluate(Node node) {
-        return reputations.computeIfAbsent(node.getID(), k -> initialReputation) >= minTrustedReputation;
-    }
-
-    private void penalize(Node node, Penalty penalty) {
-        reputations.compute(node.getID(), (k, v) -> {
-            int reputation = v == null ? initialReputation : v;
-            return reputation - penalty.value();
-        });
+        return reputations.evaluate(node);
     }
 
     public void witnessReview(Connection connection, Data message) {
         if(message.senderSignature() != Signature.VALID) {
-            penalize(connection.sender(), strongPenalty);
+            reputations.penalize(connection.sender(), strongPenalty);
+        } else {
+            reputations.reward(connection.sender());
         }
     }
 
     public void review(Connection connection, Data message) {
         var witness = connection.witness().orElseThrow(IllegalStateException::new);
+        boolean penalized = false;
         if(message.witnessSignature() != Signature.VALID) {
-            penalize(witness, strongPenalty);
+            reputations.penalize(witness, strongPenalty);
+            penalized = true;
         }
         if(message.senderSignature() != Signature.VALID) {
-            penalize(witness, weakPenalty);
-            penalize(connection.sender(), weakPenalty);
+            reputations.penalize(witness, weakPenalty);
+            reputations.penalize(connection.sender(), weakPenalty);
+            penalized = true;
+        }
+        if(!penalized) {
+            reputations.reward(witness);
+            reputations.reward(connection.sender());
         }
     }
 
@@ -75,24 +78,27 @@ public class ReputationManager {
     public void review(QueryForward queryForward, EventContext ctx) {
         var logEntryOpt = ctx.communicationManager().find(queryForward);
         if(queryForward.signature() != Signature.VALID) {
-            penalize(queryForward.forwarder(), strongPenalty);
+            reputations.penalize(queryForward.forwarder(), strongPenalty);
             return;
         }
+        reputations.reward(queryForward.forwarder());
         logEntryOpt.ifPresent(logEntry -> review(queryForward.queryResponse(), logEntry, ctx));
     }
 
     private void review(QueryResponse queryResponse, LogEntry logEntry, EventContext ctx) {
         if(queryResponse.signature() != Signature.VALID) {
-            penalize(queryResponse.responder(), strongPenalty);
+            reputations.penalize(queryResponse.responder(), strongPenalty);
         } else if(!logEntry.message().data().equals(queryResponse.message().data())) {
             // only check the query response contents if the signature is valid
             if(directCommunication(ctx.self(), queryResponse.responder(), logEntry)) {
-                penalize(queryResponse.responder(), strongPenalty);
+                reputations.penalize(queryResponse.responder(), strongPenalty);
             } else {
                 logEntry.participants().stream()
                         .filter(n -> n.getID() != ctx.self().getID())
-                        .forEach(n -> penalize(n, weakPenalty));
+                        .forEach(n -> reputations.penalize(n, weakPenalty));
             }
+        } else {
+            reputations.reward(queryResponse.responder());
         }
     }
 
@@ -116,7 +122,7 @@ public class ReputationManager {
     }
 
     public Map<Long, Integer> reputations() {
-        return reputations;
+        return reputations.reputations();
     }
 
 }

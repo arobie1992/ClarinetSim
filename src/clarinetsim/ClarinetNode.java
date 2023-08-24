@@ -28,13 +28,7 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
     public ClarinetNode(String prefix) {
         super(prefix);
         this.prefix = prefix;
-        this.eventContextFactory = new EventContextFactory(
-                Configuration.getInt(prefix + ".max_connections", 1),
-                Configuration.getInt(prefix + ".initial_reputation", 100),
-                Configuration.getInt(prefix + ".min_trusted_reputation", 0),
-                Configuration.getInt(prefix + ".weak_penalty_value", 1),
-                Configuration.getInt(prefix + ".strong_penalty_value", 3)
-        );
+        this.eventContextFactory = new EventContextFactory(prefix);
         this.printInterval = Configuration.getInt(prefix + ".print_interval", 1);
         this.printConnections = Configuration.getBoolean(prefix + ".print_connections", false);
         this.printLog = Configuration.getBoolean(prefix + ".print_log", false);

@@ -4,27 +4,36 @@ BASE_DIR=simulations
 CONFIGS_DIR=configs
 OUTPUT_DIR=output
 
-# prefix with 0s because string sorting :\
-NODE_CNTS=(0100 0500 1000 5000)
+REP_SCHEMES=(SUBTRACTIVE PROPORTIONAL)
+NODE_CNTS=(100 200 300 500 700 999)
 CYCLE_CNTS=(10 100 1000 10000)
 COEFF_VALS=(1 10 100 1000)
 MAL_PCTS=(0 10 20 30 50 70 90)
 
 gen_template() {
-      local num_nodes=$1
-      local num_cycles=$2
-      local cycle_coeff=$3
-      local mal_pct=$4
+      local rep_scheme=$1
+      local num_nodes=$2
+      local num_cycles=$3
+      local cycle_coeff=$4
+      local mal_pct=$5
       local num_mal_nodes
       num_mal_nodes=$(calc_mal_cnt "$num_nodes" "$mal_pct")
+      local min_trusted
+      if [[ "$rep_scheme" = "PROPORTIONAL" ]]; then
+        min_trusted=50
+      else
+        min_trusted=0
+      fi
 
       local template
       template=$(cat "template.txt")
+      template="${template//\$\{rep_scheme\}/$rep_scheme}"
+      template="${template//\$\{min_trusted\}/$min_trusted}"
       template="${template//\$\{num_nodes\}/$num_nodes}"
       template="${template//\$\{num_cycles\}/$num_cycles}"
       template="${template//\$\{cycle_coeff\}/$cycle_coeff}"
       template="${template//\$\{num_mal_nodes\}/$num_mal_nodes}"
-      echo "$template" > "$CONFIGS_DIR"/config-"$num_nodes"-"$num_cycles"-"$cycle_coeff"-"$mal_pct".txt
+      echo "$template" > "$CONFIGS_DIR"/config-"$rep_scheme"-"$num_nodes"-"$num_cycles"-"$cycle_coeff"-"$mal_pct".txt
 }
 
 calc_mal_cnt() {
@@ -49,11 +58,13 @@ mkdir -p "$OUTPUT_DIR"
 rm -f "$OUTPUT_DIR"/*
 
 # create the config files
-for node_cnt in "${NODE_CNTS[@]}"; do
-  for cycle_cnt in "${CYCLE_CNTS[@]}"; do
-    for coeff_val in "${COEFF_VALS[@]}"; do
-      for mal_pct in "${MAL_PCTS[@]}"; do
-        gen_template "$node_cnt" "$cycle_cnt" "$coeff_val" "$mal_pct"
+for rep_scheme in "${REP_SCHEMES[@]}"; do
+  for node_cnt in "${NODE_CNTS[@]}"; do
+    for cycle_cnt in "${CYCLE_CNTS[@]}"; do
+      for coeff_val in "${COEFF_VALS[@]}"; do
+        for mal_pct in "${MAL_PCTS[@]}"; do
+          gen_template "$rep_scheme" "$node_cnt" "$cycle_cnt" "$coeff_val" "$mal_pct"
+        done
       done
     done
   done
