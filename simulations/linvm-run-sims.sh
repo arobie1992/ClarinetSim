@@ -27,10 +27,11 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ -z "$email_address" ] && [ "$slack_url" != "yes" ]; then
+if [ -z "$email_address" ] && [ -z "$slack_url" ]; then
   echo "Please select at least one notification method:
 -s/--slack: send a notification to slack
 -e/--email: send a notification to the provided email"
+  exit 1
 fi
 
 if [ -n "$email_address" ] && [ -z "$(which mail)" ]; then
