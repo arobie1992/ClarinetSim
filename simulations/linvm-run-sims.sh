@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pushd "$(dirname "$0")" || exit 1
+
 while [[ $# -gt 0 ]]; do
   case $1 in
     -e|--email)
@@ -46,9 +48,17 @@ vm_ip="$(hostname -i)"
 
 msg="Branch '$cur_branch' on vm $vm_ip is finished running its simulations"
 if [[ -n "$email_address" ]]; then
-  echo "$msg" | mail -s "$msg" "$email_address"
+  # attach the tar of the results to the email
+  rm -rf "$cur_branch"
+  mkdir "$cur_branch"
+  cp output/* "$cur_branch"
+  tar_file="${cur_branch}.tar.gz"
+  tar -czvf "$tar_file" "$cur_branch"
+  echo "$msg" | mail -s "$msg" -A "$tar_file" "$email_address"
 fi
 
 if [[ -n "$slack_url" ]]; then
   curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$msg\"}" "$slack_url"
 fi
+
+popd || exit 1
