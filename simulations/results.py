@@ -1,11 +1,14 @@
 import re
 
+def _to_int(val):
+    return None if val is None else int(val)
+
 class ReputationStats:
     def __init__(self, avg, med, min, max) -> None:
-        self.avg = avg
-        self.med = med
-        self.min = min
-        self.max = max
+        self.avg = _to_int(avg)
+        self.med = _to_int(med)
+        self.min = _to_int(min)
+        self.max = _to_int(max)
 
 
 class NodeReputation:
