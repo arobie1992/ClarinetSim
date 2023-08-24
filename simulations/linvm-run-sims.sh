@@ -8,12 +8,13 @@ while [[ $# -gt 0 ]]; do
         echo "No email provided"
         exit 1
       fi
-      shift # past argument
-      shift # past value
+      shift # passed argument
+      shift # passed value
       ;;
     -s|--slack)
-      send_slack=yes
-      shift # past argument
+      slack_url="$2"
+      shift # passed argument
+      shift # passed value
       ;;
     -*)
       echo "Unknown option $1"
@@ -26,7 +27,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ -z "$email_address" ] && [ "$send_slack" != "yes" ]; then
+if [ -z "$email_address" ] && [ "$slack_url" != "yes" ]; then
   echo "Please select at least one notification method:
 -s/--slack: send a notification to slack
 -e/--email: send a notification to the provided email"
@@ -47,7 +48,6 @@ if [[ -n "$email_address" ]]; then
   echo "$msg" | mail -s "$msg" "$email_address"
 fi
 
-if [[ "$send_slack" = "yes" ]]; then
-  curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$msg\"}" \
-  https://hooks.slack.com/services/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
+if [[ -n "$slack_url" ]]; then
+  curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$msg\"}" "$slack_url"
 fi
