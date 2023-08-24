@@ -69,7 +69,6 @@ public class ReputationManager {
                 // if we didn't find a matching log entry, someone sent us one erroneously so don't return anything
                 .map(logEntry -> {
                     review(queryResponse, logEntry, ctx);
-                    // this is idempotent, so it doesn't matter if multiple threads perform it simultaneously
                     ctx.communicationManager().markQueried(logEntry, queryResponse.responder());
                     return queryResponse;
                 });
