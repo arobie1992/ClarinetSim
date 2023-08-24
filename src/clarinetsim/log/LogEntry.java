@@ -53,7 +53,7 @@ public class LogEntry {
         return Optional.of(candidates.get(index));
     }
 
-    public void markQueried(Node node) {
+    void markQueried(Node node) {
         if(sender.node.getID() == node.getID()) {
             sender.queried = true;
             return;

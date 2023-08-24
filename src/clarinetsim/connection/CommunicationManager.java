@@ -65,6 +65,10 @@ public class CommunicationManager {
         return log.random();
     }
 
+    public void markQueried(LogEntry logEntry, Node node) {
+        log.markQueried(logEntry, node);
+    }
+
     public void query(Node self, LogEntry logEntry, int protocolId) {
         logEntry.selectQueryTarget(self).ifPresent(candidate -> {
             var msg = new Query(logEntry, self);

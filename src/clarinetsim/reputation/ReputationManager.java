@@ -70,7 +70,7 @@ public class ReputationManager {
                 .map(logEntry -> {
                     review(queryResponse, logEntry, ctx);
                     // this is idempotent, so it doesn't matter if multiple threads perform it simultaneously
-                    logEntry.markQueried(queryResponse.responder());
+                    ctx.communicationManager().markQueried(logEntry, queryResponse.responder());
                     return queryResponse;
                 });
     }
