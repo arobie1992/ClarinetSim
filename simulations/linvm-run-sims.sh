@@ -49,11 +49,12 @@ vm_ip="$(hostname -i)"
 msg="Branch '$cur_branch' on vm $vm_ip is finished running its simulations"
 if [[ -n "$email_address" ]]; then
   # attach the tar of the results to the email
-  rm -rf "$cur_branch"
-  mkdir "$cur_branch"
-  cp output/* "$cur_branch"
-  tar_file="${cur_branch}.tar.gz"
-  tar -czvf "$tar_file" "$cur_branch"
+  results_dir=${cur_branch//\//_}
+  rm -rf "$results_dir"
+  mkdir "$results_dir"
+  cp output/* "$results_dir"
+  tar_file="${results_dir}.tar.gz"
+  tar -czvf "$tar_file" "$results_dir"
   echo "$msg" | mail -s "$msg" -A "$tar_file" "$email_address"
 fi
 
