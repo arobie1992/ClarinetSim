@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Log {
 
     private final Map<Key, LogEntry> log = new ConcurrentHashMap<>();
+    private final List<Key> queryCandidates = new ArrayList<>();
     private final List<Query> queryLog = Collections.synchronizedList(new ArrayList<>());
     private final List<QueryResponse> responseLog = Collections.synchronizedList(new ArrayList<>());
     private final List<QueryForward> forwardLog = Collections.synchronizedList(new ArrayList<>());
@@ -32,6 +33,9 @@ public class Log {
            }
            var logEntry = new LogEntry(connection, message);
            logEntry.markQueried(self);
+            synchronized(queryCandidates) {
+                queryCandidates.add(k);
+            }
            return logEntry;
         });
     }
@@ -53,15 +57,22 @@ public class Log {
     }
 
     public Optional<LogEntry> random() {
-        if(log.isEmpty()) {
-            return Optional.empty();
-        } else {
-            var candidates = log.values().stream().filter(LogEntry::queryCandidate).toList();
-            if(candidates.isEmpty()) {
+        synchronized(queryCandidates) {
+            if(queryCandidates.isEmpty()) {
                 return Optional.empty();
             }
-            var index = CommonState.r.nextInt(candidates.size());
-            return Optional.of(candidates.get(index));
+            var index = CommonState.r.nextInt(queryCandidates.size());
+            var key = queryCandidates.get(index);
+            return Optional.ofNullable(log.get(key));
+        }
+    }
+
+    public void markQueried(LogEntry logEntry, Node node) {
+        logEntry.markQueried(node);
+        if(!logEntry.queryCandidate()) {
+            synchronized(queryCandidates) {
+                queryCandidates.remove(new Key(logEntry.message()));
+            }
         }
     }
 
