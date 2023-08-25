@@ -7,7 +7,6 @@ import clarinetsim.message.QueryForward;
 import clarinetsim.message.QueryResponse;
 import peersim.core.CommonState;
 import peersim.core.Node;
-import org.apache.commons.collections4.list.TreeList;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Log {
 
     private final Map<Key, LogEntry> log = new ConcurrentHashMap<>();
-    private final TreeList<Key> queryCandidates = new TreeList<>();
+    private final List<Key> queryCandidates = new ArrayList<>();
     private final List<Query> queryLog = Collections.synchronizedList(new ArrayList<>());
     private final List<QueryResponse> responseLog = Collections.synchronizedList(new ArrayList<>());
     private final List<QueryForward> forwardLog = Collections.synchronizedList(new ArrayList<>());
