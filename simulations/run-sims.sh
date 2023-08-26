@@ -41,7 +41,7 @@ gen_template() {
       template="${template//\$\{num_mal_nodes\}/$num_mal_nodes}"
       template="${template//\$\{mal_act_thresh\}/$mal_act_thresh}"
       template="${template//\$\{prop_strong_pen_type\}/$prop_strong_pen_type}"
-      echo "$template" > "$CONFIGS_DIR"/config-"$rep_scheme"-"$num_nodes"-"$num_cycles"-"$cycle_coeff"-"$mal_pct"-"$mal_act_pct".txt
+      echo "$template" > "$CONFIGS_DIR"/config-"$rep_scheme"-"$num_nodes"-"$num_cycles"-"$cycle_coeff"-"$mal_pct"-"$mal_act_pct"-"${prop_strong_pen_type:-na}".txt
 }
 
 pct_to_cnt() {
