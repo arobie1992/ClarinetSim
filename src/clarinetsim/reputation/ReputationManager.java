@@ -15,17 +15,13 @@ import java.util.Optional;
 public class ReputationManager {
 
     private final Reputations reputations;
-    private final Penalty weakPenalty;
-    private final Penalty strongPenalty;
+    private final WeakPenalty weakPenalty;
+    private final StrongPenalty strongPenalty;
 
     public ReputationManager(String prefix) {
-        var repTypeStr = Configuration.getString(prefix + ".reputation.type", ReputationType.SUBTRACTIVE.name());
-        this.reputations = switch(ReputationType.valueOf(repTypeStr)) {
-            case SUBTRACTIVE -> new SubtractiveReputations(prefix);
-            case PROPORTIONAL -> new ProportionalReputations(prefix);
-        };
-        this.weakPenalty = new Penalty(Configuration.getInt(prefix + ".weak_penalty_value", 1));
-        this.strongPenalty = new Penalty(Configuration.getInt(prefix + ".strong_penalty_value", 3));
+        this.reputations = new Reputations(prefix);
+        this.weakPenalty = new WeakPenalty(Configuration.getInt(prefix + ".weak_penalty_value", 1));
+        this.strongPenalty = new StrongPenalty(Configuration.getInt(prefix + ".strong_penalty_value", 3));
     }
 
     /**

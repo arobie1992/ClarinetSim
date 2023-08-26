@@ -2,10 +2,7 @@ package clarinetsim.metrics;
 
 import peersim.config.Configuration;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 
 class ReputationStats<K extends Comparable<K>> {
     Map<K, Integer> reputations = new HashMap<>();
@@ -28,6 +25,11 @@ class ReputationStats<K extends Comparable<K>> {
         return sorted.isEmpty() ? null : sorted.get(sorted.size()/2);
     }
 
+    int numBelowStdev(int stdev, int average) {
+        int threshold = average - stdev;
+        return Math.toIntExact(reputations.values().stream().filter(rep -> rep < threshold).count());
+    }
+
     void addAggregated(StringJoiner sj, String name) {
         if(!reputations.isEmpty()) {
             sj.add("    "+name+": {");
@@ -42,7 +44,7 @@ class ReputationStats<K extends Comparable<K>> {
     }
 
     void addIndividuals(StringJoiner sj, String name) {
-        if(!Configuration.getBoolean("protocol.avg.metrics.print_individual", false)) {
+        if(!Configuration.getBoolean("protocol.clarinet.metrics.print_individual", false)) {
             sj.add("    "+name+": <omitted>");
         } else if(reputations.isEmpty()) {
             sj.add("    "+name+": []");
@@ -58,5 +60,9 @@ class ReputationStats<K extends Comparable<K>> {
 
     private List<Map.Entry<K, Integer>> sorted(Map<K, Integer> map) {
         return map.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
+    }
+
+    Collection<Integer> reputations() {
+        return reputations.values();
     }
 }

@@ -10,6 +10,7 @@ CYCLE_CNTS=(10 100 1000 10000)
 COEFF_VALS=(1000)
 MAL_PCTS=(0 10 20 30 50 70 90)
 MAL_ACT_THRESH_PCTS=(0 10 20 30 50 70 90)
+PROP_STRONG_PEN_TYPE=(ADD MULT)
 
 gen_template() {
       local rep_scheme=$1
@@ -28,6 +29,7 @@ gen_template() {
       local mal_act_pct=$6
       local mal_act_thresh
       mal_act_thresh=$(pct_to_cnt "$num_cycles" "$mal_act_pct")
+      local prop_strong_pen_type=$7
 
       local template
       template=$(cat "template.txt")
@@ -38,6 +40,7 @@ gen_template() {
       template="${template//\$\{cycle_coeff\}/$cycle_coeff}"
       template="${template//\$\{num_mal_nodes\}/$num_mal_nodes}"
       template="${template//\$\{mal_act_thresh\}/$mal_act_thresh}"
+      template="${template//\$\{prop_strong_pen_type\}/$prop_strong_pen_type}"
       echo "$template" > "$CONFIGS_DIR"/config-"$rep_scheme"-"$num_nodes"-"$num_cycles"-"$cycle_coeff"-"$mal_pct"-"$mal_act_pct".txt
 }
 
@@ -69,7 +72,13 @@ for rep_scheme in "${REP_SCHEMES[@]}"; do
       for coeff_val in "${COEFF_VALS[@]}"; do
         for mal_pct in "${MAL_PCTS[@]}"; do
           for mal_act_pct in "${MAL_ACT_THRESH_PCTS[@]}"; do
-            gen_template "$rep_scheme" "$node_cnt" "$cycle_cnt" "$coeff_val" "$mal_pct" "$mal_act_pct"
+            if [[ "$rep_scheme" = "PROPORTIONAL" ]]; then
+              for prop_strong_pen_type in "${PROP_STRONG_PEN_TYPE[@]}"; do
+                gen_template "$rep_scheme" "$node_cnt" "$cycle_cnt" "$coeff_val" "$mal_pct" "$mal_act_pct" "$prop_strong_pen_type"
+              done
+            else
+              gen_template "$rep_scheme" "$node_cnt" "$cycle_cnt" "$coeff_val" "$mal_pct" "$mal_act_pct" ""
+            fi
           done
         done
       done
