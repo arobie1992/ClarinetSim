@@ -22,23 +22,24 @@ simulation.logtime CYCLE
 
 protocol.link peersim.core.IdleProtocol
 
-protocol.avg clarinetsim.ClarinetNode
-protocol.avg.linkable link
-protocol.avg.step CYCLE
-protocol.avg.transport tr
-protocol.avg.max_connections 15
-protocol.avg.reputation.min_trusted ${min_trusted}
-protocol.avg.reputation.type ${rep_scheme}
-protocol.avg.reputation.subtractive.initial 100
-protocol.avg.reputation.proportional.eval_threshold 50
-protocol.avg.weak_penalty_value 1
-protocol.avg.strong_penalty_value 3
-protocol.avg.print_interval 3
-protocol.avg.print_connections false
-protocol.avg.print_log false
-protocol.avg.print_reputations false
-protocol.avg.num_malicious ${num_mal_nodes}
-protocol.avg.metrics.print_individual false
+protocol.clarinet clarinetsim.ClarinetNode
+protocol.clarinet.linkable link
+protocol.clarinet.step CYCLE
+protocol.clarinet.transport tr
+protocol.clarinet.max_connections 15
+protocol.clarinet.reputation.min_trusted ${min_trusted}
+protocol.clarinet.reputation.type ${rep_scheme}
+protocol.clarinet.reputation.subtractive.initial 100
+protocol.clarinet.reputation.proportional.eval_threshold 50
+protocol.clarinet.weak_penalty_value 1
+protocol.clarinet.strong_penalty_value 3
+protocol.clarinet.print_interval 3
+protocol.clarinet.print_connections false
+protocol.clarinet.print_log false
+protocol.clarinet.print_reputations false
+protocol.clarinet.num_malicious ${num_mal_nodes}
+protocol.clarinet.malicious_action_threshold ${mal_act_thresh}
+protocol.clarinet.metrics.print_individual false
 
 
 protocol.urt UniformRandomTransport
@@ -56,17 +57,17 @@ init.rndlink.k 20
 init.rndlink.protocol link
 
 init.vals LinearDistribution
-init.vals.protocol avg
+init.vals.protocol clarinet
 init.vals.max SIZE
 init.vals.min 1
 
 init.sch CDScheduler
-init.sch.protocol avg
+init.sch.protocol clarinet
 init.sch.randstart
 
 ################ control ==============================
 
 control.0 SingleValueObserver
-control.0.protocol avg
+control.0.protocol clarinet
 control.0.step CYCLE
 

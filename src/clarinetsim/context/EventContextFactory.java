@@ -40,7 +40,7 @@ public class EventContextFactory {
             int maxConnections = Configuration.getInt(prefix + ".max_connections", 1);
             if(GlobalState.isMalicious(node)) {
                 this.connectionManager = new MaliciousConnectionManager(maxConnections);
-                this.communicationManager = new MaliciousCommunicationManager();
+                this.communicationManager = new MaliciousCommunicationManager(prefix);
                 this.reputationManager = new MaliciousReputationManager(prefix);
             } else {
                 this.connectionManager = new ConnectionManager(maxConnections);

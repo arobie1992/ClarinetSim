@@ -8,11 +8,28 @@ import clarinetsim.message.Data;
 import clarinetsim.message.Query;
 import clarinetsim.message.QueryResponse;
 import clarinetsim.reputation.Signature;
+import peersim.config.Configuration;
 import peersim.core.Node;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MaliciousCommunicationManager extends CommunicationManager {
 
+    private final int maliceActionThreshold;
+    private final AtomicInteger counter = new AtomicInteger();
+
+    public MaliciousCommunicationManager(String prefix) {
+        this.maliceActionThreshold = Configuration.getInt(prefix + ".malicious_action_threshold");
+    }
+
+    private boolean checkActMaliciously() {
+        return counter.incrementAndGet() > maliceActionThreshold;
+    }
+
     @Override public Connection send(Node self, Connection connection, String message, int protocolId) {
+        if(!checkActMaliciously()) {
+            return super.send(self, connection, message, protocolId);
+        }
         Node witness = connection.witness()
                 .orElseThrow(() -> new UnsupportedOperationException("Cannot send on connection without witness selected"));
         Node receiver = connection.receiver();
@@ -34,6 +51,9 @@ public class MaliciousCommunicationManager extends CommunicationManager {
     }
 
     @Override public Connection forward(Connection connection, Data message, EventContext ctx) {
+        if(!checkActMaliciously()) {
+            return super.forward(connection, message, ctx);
+        }
         // we want to log the message even if we don't forward it as a record of us getting it
         log().add(ctx.self(), connection, message);
         ctx.reputationManager().witnessReview(connection, message);
@@ -56,6 +76,10 @@ public class MaliciousCommunicationManager extends CommunicationManager {
     }
 
     public void reply(Query query, LogEntry logEntry, EventContext ctx) {
+        if(!checkActMaliciously()) {
+            super.reply(query, logEntry, ctx);
+            return;
+        }
         QueryResponse resp;
         if(GlobalState.isMalicious(query.querier())
                 || (GlobalState.isMalicious(logEntry.sender()) && GlobalState.isMalicious(logEntry.receiver()))

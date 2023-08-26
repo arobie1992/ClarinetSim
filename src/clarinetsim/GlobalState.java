@@ -16,7 +16,7 @@ public class GlobalState {
     public static boolean isMalicious(long nodeId) {
         // this is idempotent, so it's fine if multiple threads write it
         if(numMalicious == -1) {
-            numMalicious = Configuration.getInt("protocol.avg.num_malicious", 0);
+            numMalicious = Configuration.getInt("protocol.clarinet.num_malicious", 0);
         }
         return nodeId < numMalicious;
     }
