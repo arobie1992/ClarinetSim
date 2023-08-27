@@ -53,7 +53,9 @@ if [[ -n "$email_address" ]]; then
   rm -rf "$results_dir"
   mkdir "$results_dir"
   cp output/* "$results_dir"
-  tar_file="${results_dir}.tar.gz"
+  # name to .txt since email providers don't like .tar.gz files
+  # as long as you're on a *nix system, can still untar fine
+  tar_file="${results_dir}.txt"
   tar -czvf "$tar_file" "$results_dir"
   echo "$msg" | mail -s "$msg" -A "$tar_file" "$email_address"
 fi
