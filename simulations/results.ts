@@ -3,7 +3,7 @@ class ReputationStats {
     readonly med: number;
     readonly min: number;
     readonly max: number;
-    constructor(avg: string, med: string, min: string, max: string) {
+    constructor(avg: string|number, med: string|number, min: string|number, max: string|number) {
         this.avg = +avg || 0;
         this.med = +med || 0;
         this.min = +min || 0;
@@ -36,7 +36,6 @@ class NodeTotalStats {
         this.numMalActedMaliciously = numMalActedMaliciously;
     }
 }
-
 
 class NodeReputation {
     readonly id: number|undefined;
@@ -188,17 +187,27 @@ class PermutationInfo {
     readonly coefficientValue: number;
     readonly malPercent: number;
     readonly malActionThresholdPercent: number;
-    constructor(reputationScheme: string, nodeCount: number, cycleCount: number, coefficientValue: number, malPercent: number, malActionThresholdPercent: number) {
+    readonly proportionalStrongPenType: string;
+    constructor(
+        reputationScheme: string, 
+        nodeCount: number, 
+        cycleCount: number, 
+        coefficientValue: number, 
+        malPercent: number, 
+        malActionThresholdPercent: number, 
+        proportionalStrongPenType: string
+    ) {
         this.reputationScheme = reputationScheme;
         this.nodeCount = nodeCount;
         this.cycleCount = cycleCount;
         this.coefficientValue = coefficientValue;
         this.malPercent = malPercent;
         this.malActionThresholdPercent = malActionThresholdPercent;
+        this.proportionalStrongPenType = proportionalStrongPenType;
     }
     static forFile(fileName: string): PermutationInfo {
         const components = fileName.slice(0, -4).split('-');
-        return new PermutationInfo(components[1], +components[2], +components[3], +components[4], +components[5], +components[6]);
+        return new PermutationInfo(components[1], +components[2], +components[3], +components[4], +components[5], +components[6], components[7]);
     }
     static compareFn(a: PermutationInfo, b: PermutationInfo): number {
         return a.reputationScheme.localeCompare(b.reputationScheme) 
@@ -206,8 +215,9 @@ class PermutationInfo {
             || a.cycleCount - b.cycleCount
             || a.coefficientValue - b.coefficientValue
             || a.malPercent - b.malPercent
-            || a.malActionThresholdPercent - b.malActionThresholdPercent;
+            || a.malActionThresholdPercent - b.malActionThresholdPercent
+            || a.proportionalStrongPenType.localeCompare(b.proportionalStrongPenType);
     }
 }
 
-export { Parser, PermutationInfo, ParseResult };
+export { Parser, PermutationInfo, ParseResult, NodeReputation, ReputationStats, NodeTotalStats };
