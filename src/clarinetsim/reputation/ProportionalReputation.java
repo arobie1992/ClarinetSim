@@ -21,6 +21,8 @@ class ProportionalReputation implements Reputation {
 
     @Override public void penalize(Penalty penalty) {
         if(strongMult && penalty instanceof StrongPenalty) {
+            // this isn't actually what I meant to do--should have been (value * total)/100, but this is what got tested
+            // and analyzed so leaving it as is; once other configurations are implemented might revisit testing this
             total += Math.max(penalty.value(), penalty.value() * total);
         } else {
             total += penalty.value();

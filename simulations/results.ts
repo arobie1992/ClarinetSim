@@ -12,10 +12,15 @@ class ReputationStats {
 }
 
 class PeerInfo {
-    readonly nodeId: number;
+    readonly nodeId: number|string;
     readonly reputation: number;
     constructor(nodeId: string, reputation: string) {
-        this.nodeId = +nodeId;
+        const test = +nodeId;
+        if(Number.isNaN(test)) {
+            this.nodeId = nodeId;
+        } else {
+            this.nodeId = test;
+        }
         this.reputation = +reputation;
     }
 }
