@@ -40,6 +40,8 @@ protocol.clarinet.print_log false
 protocol.clarinet.print_reputations false
 protocol.clarinet.num_malicious ${num_mal_nodes}
 protocol.clarinet.malicious_action_threshold ${mal_act_thresh}
+# between 0 and 1 inclusive; 0 means they never act malicious and 1 means they act malicious 100% of the time
+protocol.clarinet.malicious_action_percentage ${mal_act_pct}
 protocol.clarinet.metrics.print_individual false
 
 

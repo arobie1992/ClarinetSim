@@ -40,6 +40,8 @@ protocol.clarinet.print_log false
 protocol.clarinet.print_reputations false
 protocol.clarinet.num_malicious SIZE/2
 protocol.clarinet.malicious_action_threshold CYCLES/2
+# between 0 and 1 inclusive; 0 means they never act malicious and 1 means they act malicious 100% of the time
+protocol.clarinet.malicious_action_percentage 0.5
 protocol.clarinet.metrics.print_individual false
 
 protocol.urt UniformRandomTransport

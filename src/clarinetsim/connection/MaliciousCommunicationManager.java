@@ -9,6 +9,7 @@ import clarinetsim.message.Query;
 import clarinetsim.message.QueryResponse;
 import clarinetsim.reputation.Signature;
 import peersim.config.Configuration;
+import peersim.core.CommonState;
 import peersim.core.Node;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,13 +18,16 @@ public class MaliciousCommunicationManager extends CommunicationManager {
 
     private final int maliceActionThreshold;
     private final AtomicInteger counter = new AtomicInteger();
+    // between 0 and 1
+    private final double maliceActionPercentage;
 
     public MaliciousCommunicationManager(String prefix) {
         this.maliceActionThreshold = Configuration.getInt(prefix + ".malicious_action_threshold");
+        this.maliceActionPercentage = Configuration.getDouble(prefix + ".malicious_action_percentage");
     }
 
     private boolean checkActMaliciously() {
-        return counter.incrementAndGet() > maliceActionThreshold;
+        return counter.incrementAndGet() > maliceActionThreshold && CommonState.r.nextDouble() < maliceActionPercentage;
     }
 
     @Override public Connection send(Node self, Connection connection, String message, int protocolId) {
