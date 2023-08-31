@@ -10,7 +10,7 @@ CYCLE_CNTS=(10 100 1000 10000)
 COEFF_VALS=(1000)
 MAL_PCTS=(0 10 20 30 50 70 90)
 MAL_ACT_THRESH_PCTS=(0 10 20 30 50 70 90)
-MAL_ACT_PCT=(0.0 0.1 0.2 0.3 0.5 0.7 0.9)
+MAL_ACT_PCTS=(0.0 0.1 0.2 0.3 0.5 0.7 0.9)
 PROP_STRONG_PEN_TYPE=(ADD)
 
 gen_template() {
@@ -75,7 +75,7 @@ for rep_scheme in "${REP_SCHEMES[@]}"; do
       for coeff_val in "${COEFF_VALS[@]}"; do
         for mal_pct in "${MAL_PCTS[@]}"; do
           for mal_act_thresh_pct in "${MAL_ACT_THRESH_PCTS[@]}"; do
-            for mal_act_pct in "${MAL_ACT_PCT[@]}"; do
+            for mal_act_pct in "${MAL_ACT_PCTS[@]}"; do
               if [[ "$rep_scheme" = "PROPORTIONAL" ]]; then
                 for prop_strong_pen_type in "${PROP_STRONG_PEN_TYPE[@]}"; do
                   gen_template "$rep_scheme" "$node_cnt" "$cycle_cnt" "$coeff_val" "$mal_pct" "$mal_act_thresh_pct" "$mal_act_pct" "$prop_strong_pen_type"
