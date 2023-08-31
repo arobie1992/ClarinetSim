@@ -1,3 +1,5 @@
 package clarinetsim.reputation;
 
-public record Penalty(int value) {}
+sealed interface Penalty permits StrongPenalty, WeakPenalty {
+    int value();
+}

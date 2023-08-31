@@ -1,5 +1,19 @@
 #!/bin/bash
 
+format_time() {
+  local minute=60
+  local hour=$((minute*60))
+
+  local time=$1
+
+  local hours=$((time/hour))
+  local remaining=$((time%hour))
+  local minutes=$((remaining/minute))
+  local seconds=$((remaining%minute))
+
+  echo "${hours}h${minutes}m${seconds}s"
+}
+
 pushd "$(dirname "$0")" || exit 1
 
 while [[ $# -gt 0 ]]; do
@@ -41,12 +55,15 @@ if [ -n "$email_address" ] && [ -z "$(which mail)" ]; then
   exit 1
 fi
 
+start=$(date +%s)
 ./run-sims.sh
+end=$(date +%s)
 
+time=$(format_time $((end-start)))
 cur_branch="$(git rev-parse --abbrev-ref HEAD)"
 vm_ip="$(hostname -i)"
+msg="Branch '$cur_branch' on vm $vm_ip is finished running its simulations in $time"
 
-msg="Branch '$cur_branch' on vm $vm_ip is finished running its simulations"
 if [[ -n "$email_address" ]]; then
   # attach the tar of the results to the email
   results_dir=${cur_branch//\//_}
