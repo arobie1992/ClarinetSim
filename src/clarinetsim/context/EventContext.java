@@ -1,5 +1,6 @@
 package clarinetsim.context;
 
+import clarinetsim.network.NetworkManager;
 import clarinetsim.reputation.ReputationManager;
 import clarinetsim.connection.CommunicationManager;
 import clarinetsim.connection.ConnectionManager;
@@ -10,5 +11,6 @@ public record EventContext(
         int protocolId,
         ConnectionManager connectionManager,
         CommunicationManager communicationManager,
-        ReputationManager reputationManager
+        ReputationManager reputationManager,
+        NetworkManager networkManager
 ) {}

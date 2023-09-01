@@ -5,6 +5,8 @@ import clarinetsim.connection.CommunicationManager;
 import clarinetsim.connection.ConnectionManager;
 import clarinetsim.connection.MaliciousCommunicationManager;
 import clarinetsim.connection.MaliciousConnectionManager;
+import clarinetsim.network.MaliciousNetworkManager;
+import clarinetsim.network.NetworkManager;
 import clarinetsim.reputation.MaliciousReputationManager;
 import clarinetsim.reputation.ReputationManager;
 import peersim.config.Configuration;
@@ -22,6 +24,7 @@ public class EventContextFactory {
     private ConnectionManager connectionManager;
     private CommunicationManager communicationManager;
     private ReputationManager reputationManager;
+    private NetworkManager networkManager;
 
     public EventContextFactory(String prefix) {
         this.prefix = prefix;
@@ -42,10 +45,12 @@ public class EventContextFactory {
                 this.connectionManager = new MaliciousConnectionManager(maxConnections);
                 this.communicationManager = new MaliciousCommunicationManager(prefix);
                 this.reputationManager = new MaliciousReputationManager(prefix);
+                this.networkManager = new MaliciousNetworkManager();
             } else {
                 this.connectionManager = new ConnectionManager(maxConnections);
                 this.communicationManager = new CommunicationManager();
                 this.reputationManager = new ReputationManager(prefix);
+                this.networkManager = new NetworkManager();
             }
             initialized = true;
         }
@@ -56,22 +61,31 @@ public class EventContextFactory {
         return new EventContext(
                 Objects.requireNonNull(node),
                 protocolId,
-                connectionManager,
-                communicationManager,
-                reputationManager
+                validateInited(connectionManager),
+                validateInited(communicationManager),
+                validateInited(reputationManager),
+                validateInited(networkManager)
         );
     }
 
     public ConnectionManager connectionManager() {
-        return Objects.requireNonNull(connectionManager, "EventContextFactory was not initialized");
+        return validateInited(connectionManager);
     }
 
     public CommunicationManager communicationManager() {
-        return Objects.requireNonNull(communicationManager, "EventContextFactory was not initialized");
+        return validateInited(communicationManager);
     }
 
     public ReputationManager reputationManager() {
-        return Objects.requireNonNull(reputationManager, "EventContextFactory was not initialized");
+        return validateInited(reputationManager);
+    }
+
+    public NetworkManager networkManager() {
+        return validateInited(networkManager);
+    }
+
+    private <T> T validateInited(T val) {
+        return Objects.requireNonNull(val, "EventContextFactory was not initialized");
     }
 
 }

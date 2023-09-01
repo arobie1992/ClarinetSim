@@ -1,15 +1,10 @@
 package clarinetsim;
 
-import clarinetsim.message.ClarinetMessage;
 import clarinetsim.context.EventContext;
+import clarinetsim.message.ClarinetMessage;
 import peersim.config.FastConfig;
-import peersim.core.CommonState;
-import peersim.core.Linkable;
 import peersim.core.Node;
 import peersim.transport.Transport;
-
-import java.util.*;
-import java.util.stream.IntStream;
 
 public class NeighborUtils {
 
@@ -26,33 +21,6 @@ public class NeighborUtils {
         int transportId = FastConfig.getTransport(protocolId);
         Transport transport = (Transport) self.getProtocol(transportId);
         transport.send(self, destination, message, protocolId);
-    }
-
-    public static Optional<Node> getNeighbor(Node node, int protocolId, int neighborId) {
-        int linkableId = FastConfig.getLinkable(protocolId);
-        Linkable linkable = (Linkable) node.getProtocol(linkableId);
-        return IntStream.range(0, linkable.degree()).mapToObj(linkable::getNeighbor).filter(n -> n.getID() == neighborId).findFirst();
-    }
-
-    public static Optional<Node> selectRandomNeighbor(Node node, int protocolId) {
-        int linkableId = FastConfig.getLinkable(protocolId);
-        Linkable linkable = (Linkable) node.getProtocol(linkableId);
-        if (linkable.degree() == 0) {
-            return Optional.empty();
-        }
-
-        int neighborId = CommonState.r.nextInt(linkable.degree());
-        return Optional.ofNullable(linkable.getNeighbor(neighborId));
-    }
-
-    public static List<Node> getAllNeighbors(Node node, int protocolId) {
-        int linkableId = FastConfig.getLinkable(protocolId);
-        Linkable linkable = (Linkable) node.getProtocol(linkableId);
-        List<Node> neighbors = new ArrayList<>();
-        for(int i = 0; i < linkable.degree(); i++) {
-            neighbors.add(linkable.getNeighbor(i));
-        }
-        return Collections.unmodifiableList(neighbors);
     }
 
 }
