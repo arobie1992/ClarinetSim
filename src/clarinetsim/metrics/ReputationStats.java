@@ -5,29 +5,29 @@ import peersim.config.Configuration;
 import java.util.*;
 
 class ReputationStats<K extends Comparable<K>> {
-    Map<K, Integer> reputations = new HashMap<>();
-    int min = Integer.MAX_VALUE;
-    int max = Integer.MIN_VALUE;
+    Map<K, Double> reputations = new HashMap<>();
+    double min = Double.POSITIVE_INFINITY;
+    double max = Double.NEGATIVE_INFINITY;
 
-    void add(K id, int reputation) {
+    void add(K id, double reputation) {
         reputations.put(id, reputation);
         min = Math.min(min, reputation);
         max = Math.max(max, reputation);
     }
 
-    Integer average() {
-        var total = reputations.values().stream().reduce(Integer::sum).orElse(null);
+    Double average() {
+        var total = reputations.values().stream().reduce(Double::sum).orElse(null);
         return total == null ? null : total/reputations.size();
     }
 
-    Integer median() {
+    Double median() {
         var sorted = reputations.values().stream().sorted().toList();
         return sorted.isEmpty() ? null : sorted.get(sorted.size()/2);
     }
 
-    int numBelowStdev(int stdev, int average) {
-        int threshold = average - stdev;
-        return Math.toIntExact(reputations.values().stream().filter(rep -> rep < threshold).count());
+    long numBelowStdev(double stdev, double average) {
+        double threshold = average - stdev;
+        return reputations.values().stream().filter(rep -> rep < threshold).count();
     }
 
     void addAggregated(StringJoiner sj, String name) {
@@ -58,11 +58,11 @@ class ReputationStats<K extends Comparable<K>> {
         }
     }
 
-    private List<Map.Entry<K, Integer>> sorted(Map<K, Integer> map) {
+    private List<Map.Entry<K, Double>> sorted(Map<K, Double> map) {
         return map.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
     }
 
-    Collection<Integer> reputations() {
+    Collection<Double> reputations() {
         return reputations.values();
     }
 }

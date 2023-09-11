@@ -116,7 +116,7 @@ public class ReputationManager {
         System.out.println("Node " + node.getID() + " " + reputations);
     }
 
-    public Map<Long, Integer> reputations() {
+    public Map<Long, Double> reputations() {
         return reputations.reputations();
     }
 

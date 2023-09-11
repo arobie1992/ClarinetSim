@@ -73,7 +73,7 @@ public class MetricsAggregator {
             var curr = reputationInfos[i];
             for(var e : eventContextFactories[i].reputationManager().reputations().entrySet()) {
                 long neighborId = e.getKey();
-                int reputation = e.getValue();
+                double reputation = e.getValue();
                 var totalId = i + "-" + neighborId;
                 if(GlobalState.isMalicious(neighborId)) {
                     curr.addMalicious(neighborId, reputation);

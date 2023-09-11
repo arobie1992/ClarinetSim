@@ -13,31 +13,31 @@ class ReputationInformation<K extends Comparable<K>> {
 
     final ReputationStats<K> withNeighbors = new ReputationStats<>();
 
-    void addCooperative(K neighborId, int reputation) {
+    void addCooperative(K neighborId, double reputation) {
         coop.add(neighborId, reputation);
     }
 
-    void addMalicious(K neighborId, int reputation) {
+    void addMalicious(K neighborId, double reputation) {
         mal.add(neighborId, reputation);
     }
 
-    private Collection<Integer> reputations() {
+    private Collection<Double> reputations() {
         var values = new ArrayList<>(coop.reputations());
         values.addAll(mal.reputations());
         return values;
     }
 
-    private int stdev() {
+    private double stdev() {
         return MathUtils.stdev(reputations());
     }
 
-    private int avg() {
+    private double avg() {
         var reputations = reputations();
-        var total = reputations.stream().reduce(Integer::sum).orElse(null);
+        var total = reputations.stream().reduce(Double::sum).orElse(null);
         return total == null ? 0 : total/reputations.size();
     }
 
-    private int median() {
+    private double median() {
         var sorted = reputations().stream().sorted().toList();
         return sorted.isEmpty() ? 0 : sorted.get(sorted.size()/2);
     }

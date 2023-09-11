@@ -47,7 +47,7 @@ class Reputations {
         });
     }
 
-    public Map<Long, Integer> reputations() {
+    public Map<Long, Double> reputations() {
         return reputations.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().value()));
     }
 }

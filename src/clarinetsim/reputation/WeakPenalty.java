@@ -1,3 +1,3 @@
 package clarinetsim.reputation;
 
-record WeakPenalty(int value) implements Penalty {}
+record WeakPenalty(double value) implements Penalty {}

@@ -36,8 +36,8 @@ class ProportionalReputation implements Reputation {
         interactions++;
     }
 
-    @Override public int value() {
-        return total == 0 ? 100 : (int) ((good/total) * 100);
+    @Override public double value() {
+        return total == 0 ? 100 : ((good/total) * 100);
     }
 
     @Override public int interactions() {
