@@ -3,6 +3,7 @@ package clarinetsim.reputation;
 import peersim.config.Configuration;
 import peersim.core.Node;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -15,6 +16,7 @@ class Reputations {
     private final Supplier<Reputation> reputationSupplier;
     private final int evalThreshold;
     private final int minTrusted;
+    private final DistributionStats distributionStats;
 
     Reputations(String prefix) {
         var repTypeStr = Configuration.getString(prefix + ".reputation.type");
@@ -24,12 +26,31 @@ class Reputations {
         };
         this.evalThreshold = Configuration.getInt(prefix + ".reputation.proportional.eval_threshold");
         this.minTrusted = Configuration.getInt(prefix + ".reputation.min_trusted");
+        this.distributionStats = new DistributionStats(prefix);
     }
 
     public boolean evaluate(Node node) {
         var reputation = reputations.computeIfAbsent(node.getID(), k -> reputationSupplier.get());
-        return reputation.interactions() < evalThreshold || reputation.value() > minTrusted;
-    }
+        if(reputation.interactions() < evalThreshold) {
+            return true;
+        }
+
+        DistributionStats.Values statsValues;
+        // bit of a leaky abstraction, but the entire benefit of the online standard deviation is that it doesn't
+        // require gathering all the reputation scores and calculating them. If we didn't check this, then we'd still
+        // end up gathering all the reputations every time and lose any benefit of the online method.
+        if(distributionStats.requiresIndividualValues()) {
+            statsValues = distributionStats.values(reputations.values().stream().map(Reputation::value).toList());
+        } else {
+            statsValues = distributionStats.values(Collections.emptyList());
+        }
+        // if standard deviation is present, we want to use both; otherwise, just fall back to minTrusted
+        if(statsValues.stdev().isPresent()) {
+            return reputation.value() > minTrusted && reputation.value() > (statsValues.mean() - statsValues.stdev().get());
+        } else {
+            return reputation.value() > minTrusted;
+        }
+   }
 
     public void penalize(Node node, Penalty penalty) {
         performRepOp(node, rep -> rep.penalize(penalty));
@@ -42,8 +63,11 @@ class Reputations {
     private void performRepOp(Node node, Consumer<Reputation> op) {
         reputations.compute(node.getID(), (k, v) -> {
             var rep = v == null ? reputationSupplier.get() : v;
+            var oldReputation = rep.value();
             op.accept(rep);
-            return  rep;
+            var newReputation = rep.value();
+            distributionStats.update(k, oldReputation, newReputation);
+            return rep;
         });
     }
 

@@ -32,6 +32,7 @@ protocol.clarinet.reputation.type ${rep_scheme}
 protocol.clarinet.reputation.subtractive.initial 100
 protocol.clarinet.reputation.proportional.eval_threshold 50
 protocol.clarinet.reputation.proportional.strong_type ${prop_strong_pen_type}
+protocol.clarinet.reputation.use_online_stdev ${use_online_stdev}
 protocol.clarinet.weak_penalty_value 1
 protocol.clarinet.strong_penalty_value 3
 protocol.clarinet.print_interval 3
