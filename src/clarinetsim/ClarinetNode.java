@@ -44,28 +44,8 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
         eventContextFactory.init(node);
         MetricsAggregator.init();
 
-//        int round = printCounter.get();
-//        // nodes with ID < protocol.avg.num_malicious are malicious
-//        if(node.getID() == 2) {
-//            switch(round) {
-//                case 0 -> NeighborUtils.getNeighbor(node, protocolId, 1).ifPresent(receiver ->
-//                            eventContextFactory.connectionManager().requestConnection(node, receiver, protocolId));
-//                case 1 -> eventContextFactory.connectionManager().selectRandom(Type.OUTGOING)
-//                            .map(connection -> eventContextFactory.communicationManager()
-//                                    .send(node, connection, "Test message", protocolId)
-//                            )
-//                            .ifPresent(eventContextFactory.connectionManager()::release);
-//            }
-//        }
-//        if(round > 2) {
-//            // now that a data message has been sent, send some queries
-//            // malicious nodes query as well to appear part of the protocol, but don't do anything with the responses
-//            eventContextFactory.communicationManager().selectRandom()
-//                    .ifPresent(logEntry -> eventContextFactory.communicationManager().query(node, logEntry, protocolId));
-//        }
-
         switch(CommonState.r.nextInt(5)) {
-            case 0 -> NeighborUtils.selectRandomNeighbor(node, protocolId)
+            case 0 -> eventContextFactory.networkManager().selectRandomNetworkNode(node)
                         .ifPresent(receiver -> eventContextFactory.connectionManager().requestConnection(node, receiver, protocolId));
             case 1 -> eventContextFactory.connectionManager().selectRandom(Type.OUTGOING)
                         .map(connection -> eventContextFactory.communicationManager()

@@ -64,7 +64,7 @@ public class ConnectionManager {
         // if we didn't get the connection, then it's been terminated so we can just pass the buck up
         return connections.get(response.connectionId()).map(connection -> {
             connection.receiverConfirmed();
-            List<Node> candidates = NeighborUtils.getAllNeighbors(ctx.self(), ctx.protocolId()).stream()
+            List<Node> candidates = ctx.networkManager().peers(ctx.self(), ctx.protocolId()).stream()
                     .filter(n -> ctx.reputationManager().evaluate(n))
                     .filter(n -> n.getID() != connection.receiver().getID())
                     .collect(Collectors.toList());
