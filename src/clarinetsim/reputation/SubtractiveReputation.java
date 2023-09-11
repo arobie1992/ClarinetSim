@@ -4,7 +4,7 @@ import peersim.config.Configuration;
 
 class SubtractiveReputation implements Reputation {
 
-    private int value;
+    private double value;
     private int interactions = 0;
 
     public SubtractiveReputation(String prefix) {
@@ -21,7 +21,7 @@ class SubtractiveReputation implements Reputation {
         interactions++;
     }
 
-    @Override public int value() {
+    @Override public double value() {
         return value;
     }
 
