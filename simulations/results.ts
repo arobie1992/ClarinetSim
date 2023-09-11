@@ -195,7 +195,7 @@ class PermutationInfo {
     readonly malActionPercent: number;
     readonly useOnlineStdev: string;
     readonly proportionalStrongPenType: string;
-    static readonly csvHeader = "scheme,nodes,cycles,coeff,mal%,malActThresh,malActPct,onlineStdev,strongPenType"
+    static readonly csvHeader = "scheme,nodes,cycles,coeff,mal%,malActThresh,malAct%,onlineStdev,strongPenType"
     constructor(
         reputationScheme: string,
         nodeCount: number,
