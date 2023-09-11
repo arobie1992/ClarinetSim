@@ -192,14 +192,17 @@ class PermutationInfo {
     readonly coefficientValue: number;
     readonly malPercent: number;
     readonly malActionThresholdPercent: number;
+    readonly malActionPercent: number;
     readonly proportionalStrongPenType: string;
+    static readonly csvHeader = "scheme,nodes,cycles,coeff,mal%,malActThresh,malActPct,strongPenType"
     constructor(
-        reputationScheme: string, 
-        nodeCount: number, 
-        cycleCount: number, 
-        coefficientValue: number, 
-        malPercent: number, 
-        malActionThresholdPercent: number, 
+        reputationScheme: string,
+        nodeCount: number,
+        cycleCount: number,
+        coefficientValue: number,
+        malPercent: number,
+        malActionThresholdPercent: number,
+        malActPercent: number,
         proportionalStrongPenType: string
     ) {
         this.reputationScheme = reputationScheme;
@@ -208,11 +211,12 @@ class PermutationInfo {
         this.coefficientValue = coefficientValue;
         this.malPercent = malPercent;
         this.malActionThresholdPercent = malActionThresholdPercent;
+        this.malActionPercent = malActionPercent;
         this.proportionalStrongPenType = proportionalStrongPenType;
     }
     static forFile(fileName: string): PermutationInfo {
         const components = fileName.slice(0, -4).split('-');
-        return new PermutationInfo(components[1], +components[2], +components[3], +components[4], +components[5], +components[6], components[7]);
+        return new PermutationInfo(components[1], +components[2], +components[3], +components[4], +components[5], +components[6], +components[7], components[8]);
     }
     static compareFn(a: PermutationInfo, b: PermutationInfo): number {
         return a.reputationScheme.localeCompare(b.reputationScheme) 
@@ -222,6 +226,9 @@ class PermutationInfo {
             || a.malPercent - b.malPercent
             || a.malActionThresholdPercent - b.malActionThresholdPercent
             || a.proportionalStrongPenType.localeCompare(b.proportionalStrongPenType);
+    }
+    toCsvRow(): string {
+        return `${this.reputationScheme},${this.nodeCount},${this.cycleCount},${this.coefficientValue},${this.malPercent},${this.malActionThresholdPercent},${this.malActionPercent},${this.proportionalStrongPenType}`;
     }
 }
 
