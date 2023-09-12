@@ -31,7 +31,7 @@ public class MessageHandler {
     }
 
     public void handle(WitnessSelection msg, EventContext ctx) {
-        ctx.connectionManager().acceptWitness(msg);
+        ctx.connectionManager().acceptWitness(msg, ctx);
     }
 
     public void handle(ConnectionTerminate msg, EventContext ctx) {
