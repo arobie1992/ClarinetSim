@@ -8,11 +8,15 @@ class ReputationStats<K extends Comparable<K>> {
     Map<K, Double> reputations = new HashMap<>();
     double min = Double.POSITIVE_INFINITY;
     double max = Double.NEGATIVE_INFINITY;
+    private int numTrusted = 0;
 
-    void add(K id, double reputation) {
+    void add(K id, double reputation, boolean trusted) {
         reputations.put(id, reputation);
         min = Math.min(min, reputation);
         max = Math.max(max, reputation);
+        if(trusted) {
+            numTrusted++;
+        }
     }
 
     Double average() {
@@ -37,6 +41,8 @@ class ReputationStats<K extends Comparable<K>> {
             sj.add("        median: " + median());
             sj.add("        min: " + min);
             sj.add("        max: " + max);
+            sj.add("        numTrusted: " + numTrusted);
+            sj.add("        numTotal: " + reputations.size());
             sj.add("    }");
         } else {
             sj.add("    "+name+": {}");

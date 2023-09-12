@@ -30,7 +30,7 @@ protocol.clarinet.max_connections 15
 protocol.clarinet.reputation.min_trusted 50
 protocol.clarinet.reputation.type PROPORTIONAL
 protocol.clarinet.reputation.subtractive.initial 100
-protocol.clarinet.reputation.proportional.eval_threshold 50
+protocol.clarinet.reputation.proportional.eval_threshold 1
 protocol.clarinet.reputation.proportional.strong_type ADD
 protocol.clarinet.reputation.use_online_stdev true
 protocol.clarinet.weak_penalty_value 1

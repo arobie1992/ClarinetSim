@@ -7,6 +7,7 @@ import peersim.core.Node;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -59,7 +60,33 @@ public class MetricsAggregator {
 
     private static class IndividualReputationInformation extends ReputationInformation<Long> {}
 
-    private static class AggregatedReputationInformation extends ReputationInformation<String> {}
+    private static class AggregatedReputationInformation extends ReputationInformation<String> {
+        @Override public String toString() {
+            var sj = new StringJoiner(System.lineSeparator());
+            sj.add("{");
+            coop.addAggregated(sj, "coop");
+            mal.addAggregated(sj, "mal");
+            withNeighbors.addAggregated(sj, "repWithNeighbors");
+
+            var avg = avg();
+            sj.add("    total: {");
+            sj.add("        average: " + avg);
+            sj.add("        median: " + median());
+            // the standard deviation calculations weren't correct and can calulate it with fields in results.ts, so
+            // just do it there instead and print filler values here so the parsing doesn't break
+            sj.add("        stdev: -1");
+            sj.add("        numCoopBelow: -1");
+            sj.add("        numMalBelow: -1");
+            sj.add("        numMalActedMaliciously: -1");
+            sj.add("    }");
+
+            coop.addIndividuals(sj, "individualCoop");
+            mal.addIndividuals(sj, "individualMal");
+            withNeighbors.addIndividuals(sj, "individualRepWithNeighbors");
+            sj.add("}");
+            return sj.toString();
+        }
+    }
 
     private static void printMetrics() {
         var totalReputationInfo = new AggregatedReputationInformation();
@@ -75,14 +102,16 @@ public class MetricsAggregator {
                 long neighborId = e.getKey();
                 double reputation = e.getValue();
                 var totalId = i + "-" + neighborId;
+                var trusted = eventContextFactories[i].reputationManager().evaluate(new IdOnlyNode(neighborId));
                 if(GlobalState.isMalicious(neighborId)) {
-                    curr.addMalicious(neighborId, reputation);
-                    totalReputationInfo.addMalicious(totalId, reputation);
+                    curr.addMalicious(neighborId, reputation, trusted);
+                    totalReputationInfo.addMalicious(totalId, reputation, trusted);
                 } else {
-                    curr.addCooperative(neighborId, reputation);
-                    totalReputationInfo.addCooperative(totalId, reputation);
+                    curr.addCooperative(neighborId, reputation, trusted);
+                    totalReputationInfo.addCooperative(totalId, reputation, trusted);
                 }
-                reputationInfos[Math.toIntExact(neighborId)].withNeighbors.add((long) i, reputation);
+                var peerTrusts = eventContextFactories[Math.toIntExact(neighborId)].reputationManager().evaluate(new IdOnlyNode(i));
+                reputationInfos[Math.toIntExact(neighborId)].withNeighbors.add((long) i, reputation, peerTrusts);
             }
         }
 
