@@ -3,11 +3,15 @@ class ReputationStats {
     readonly med: number;
     readonly min: number;
     readonly max: number;
-    constructor(avg: string|number, med: string|number, min: string|number, max: string|number) {
+    readonly numTrusted: number;
+    readonly numTotal: number;
+    constructor(avg: string|number, med: string|number, min: string|number, max: string|number, numTrusted: string|number, numTotal: string|number) {
         this.avg = +avg || 0;
         this.med = +med || 0;
         this.min = +min || 0;
         this.max = +max || 0;
+        this.numTrusted = +numTrusted || -1;
+        this.numTotal = +numTotal || -1;
     }
 }
 
@@ -28,17 +32,24 @@ class PeerInfo {
 class NodeTotalStats {
     readonly avg: number;
     readonly med: number;
-    readonly stdev: number;
-    readonly numCoopBelow: number;
-    readonly numMalBelow: number;
-    readonly numMalActedMaliciously: number;
-    constructor(avg: number, med: number, stdev: number, numCoopBelow: number, numMalBelow: number, numMalActedMaliciously: number) {
-        this.avg = avg;
-        this.med = med;
-        this.stdev = stdev;
-        this.numCoopBelow = numCoopBelow;
-        this.numMalBelow = numMalBelow;
-        this.numMalActedMaliciously = numMalActedMaliciously;
+    readonly stdev: number|string;
+    readonly numCoopBelow: number|string;
+    readonly numMalBelow: number|string;
+    readonly numMalActedMaliciously: number|string;
+    constructor(
+        avg: number|string, 
+        med: number|string, 
+        stdev: number|string,
+        numCoopBelow: number|string, 
+        numMalBelow: number|string, 
+        numMalActedMaliciously: number|string
+    ) {
+        this.avg = +avg;
+        this.med = +med;
+        this.stdev = +stdev || stdev;
+        this.numCoopBelow = +numCoopBelow || numCoopBelow;
+        this.numMalBelow = +numMalBelow || numMalBelow;
+        this.numMalActedMaliciously = +numMalActedMaliciously || numMalActedMaliciously;
     }
 }
 
@@ -98,7 +109,7 @@ class Parser {
     private readonly node = String.raw`Node (?<${this.node_id_grp}>\d+) \((?<${this.node_type_grp}>malicious|cooperative)\)`;
     private readonly grandTotal = "Grand Total";
     private readonly nl = String.raw`\r?\n`;
-    private readonly agg = String.raw`{[\r\n\sa-zA-Z:\d-]*}`;
+    private readonly agg = String.raw`{[\r\n\sa-zA-Z:\d\.-]*}`;
     private readonly coop = String.raw`coop: (?<${this.coop_grp}>${this.agg})`;
     private readonly mal = String.raw`mal: (?<${this.mal_grp}>${this.agg})`;
     private readonly neighbors = String.raw`repWithNeighbors: (?<${this.neighbors_grp}>${this.agg})`;
@@ -111,14 +122,16 @@ class Parser {
     private readonly node_info = String.raw`(?<${this.node_info_grp}>${this.node}|${this.grandTotal})`;
     private readonly regexp = new RegExp(`${this.node_info} ${this.body}`, 'g');
 
-    private readonly num = String.raw`-?\d+`;
+    private readonly num = String.raw`-?\d+(?:\.\d*)?`;
     private readonly agg_sep = String.raw`${this.nl}\s{8}`;
     private readonly avg_grp = "avg";
     private readonly med_grp = "med";
     private readonly min_grp = "min";
     private readonly max_grp = "max";
+    private readonly num_trusted_grp = "trusted";
+    private readonly num_total_grp = "total";
     private readonly agg_empty = "{}";
-    private readonly agg_data = String.raw`{${this.agg_sep}average: (?<${this.avg_grp}>${this.num})${this.agg_sep}median: (?<${this.med_grp}>${this.num})${this.agg_sep}min: (?<${this.min_grp}>${this.num})${this.agg_sep}max: (?<${this.max_grp}>${this.num})${this.nl}\s{4}}`;
+    private readonly agg_data = String.raw`{${this.agg_sep}average: (?<${this.avg_grp}>${this.num})${this.agg_sep}median: (?<${this.med_grp}>${this.num})${this.agg_sep}min: (?<${this.min_grp}>${this.num})${this.agg_sep}max: (?<${this.max_grp}>${this.num})${this.agg_sep}numTrusted: (?<${this.num_trusted_grp}>${this.num})${this.agg_sep}numTotal: (?<${this.num_total_grp}>${this.num})${this.nl}\s{4}}`;
     private readonly agg_regexp = new RegExp(`(?:${this.agg_empty}|${this.agg_data})`);
 
     private readonly stdev_grp = "stdev";
@@ -156,7 +169,9 @@ class Parser {
         const med = match.groups!![this.med_grp];
         const min = match.groups!![this.min_grp];
         const max = match.groups!![this.max_grp];
-        return new ReputationStats(avg, med, min, max);
+        const numTrusted = match.groups!![this.num_trusted_grp];
+        const numTotal = match.groups!![this.num_total_grp];
+        return new ReputationStats(avg, med, min, max, numTrusted, numTotal);
     }
 
     private parseTotal(str: string): NodeTotalStats {
@@ -167,7 +182,7 @@ class Parser {
         const numCoopBelow = match.groups!![this.coop_below_grp];
         const numMalBelow = match.groups!![this.mal_below_grp];
         const numMalActedMaliciously = match.groups!![this.mal_acted_grp];
-        return new NodeTotalStats(+avg, +med, +stdev, +numCoopBelow, +numMalBelow, +numMalActedMaliciously);
+        return new NodeTotalStats(avg, med, stdev, numCoopBelow, numMalBelow, numMalActedMaliciously);
     }
 
     private parseIndividual(str: string): Array<PeerInfo> {
@@ -203,7 +218,7 @@ class PermutationInfo {
         coefficientValue: number,
         malPercent: number,
         malActionThresholdPercent: number,
-        malActPercent: number,
+        malActionPercent: number,
         useOnlineStdev: string,
         proportionalStrongPenType: string
     ) {
@@ -229,7 +244,7 @@ class PermutationInfo {
             || a.malPercent - b.malPercent
             || a.malActionThresholdPercent - b.malActionThresholdPercent
             || a.malActionPercent - b.malActionPercent
-            || a.onlineStdev.localeCompare(b.onlineStdev)
+            || a.useOnlineStdev.localeCompare(b.useOnlineStdev)
             || a.proportionalStrongPenType.localeCompare(b.proportionalStrongPenType);
     }
     toCsvRow(): string {

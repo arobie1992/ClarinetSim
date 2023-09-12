@@ -7,18 +7,18 @@ import java.util.Collection;
 import java.util.StringJoiner;
 
 class ReputationInformation<K extends Comparable<K>> {
-    private final ReputationStats<K> coop = new ReputationStats<>();
+    final ReputationStats<K> coop = new ReputationStats<>();
 
-    private final ReputationStats<K> mal = new ReputationStats<>();
+    final ReputationStats<K> mal = new ReputationStats<>();
 
     final ReputationStats<K> withNeighbors = new ReputationStats<>();
 
-    void addCooperative(K neighborId, double reputation) {
-        coop.add(neighborId, reputation);
+    void addCooperative(K neighborId, double reputation, boolean trusted) {
+        coop.add(neighborId, reputation, trusted);
     }
 
-    void addMalicious(K neighborId, double reputation) {
-        mal.add(neighborId, reputation);
+    void addMalicious(K neighborId, double reputation, boolean trusted) {
+        mal.add(neighborId, reputation, trusted);
     }
 
     private Collection<Double> reputations() {
@@ -31,13 +31,13 @@ class ReputationInformation<K extends Comparable<K>> {
         return MathUtils.stdev(reputations());
     }
 
-    private double avg() {
+    double avg() {
         var reputations = reputations();
         var total = reputations.stream().reduce(Double::sum).orElse(null);
         return total == null ? 0 : total/reputations.size();
     }
 
-    private double median() {
+    double median() {
         var sorted = reputations().stream().sorted().toList();
         return sorted.isEmpty() ? 0 : sorted.get(sorted.size()/2);
     }
