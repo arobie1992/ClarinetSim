@@ -33,6 +33,7 @@ public class ConnectionManager {
     }
 
     public void tryAccept(ConnectionRequest request, EventContext ctx) {
+        ctx.networkManager().addPeer(ctx, request.sender());
         connections.accept(request.sender(), ctx.self(), request.connectionId())
                 .map(connection -> {
                     // we don't make further updates so it's okay to release it now
@@ -47,6 +48,8 @@ public class ConnectionManager {
     }
 
     public void tryWitness(WitnessRequest request, EventContext ctx) {
+        ctx.networkManager().addPeer(ctx, request.sender());
+        ctx.networkManager().addPeer(ctx, request.receiver());
         connections.witness(request.sender(), ctx.self(), request.receiver(), request.connectionId())
                 .map(connection -> {
                     // we don't make further updates so it's okay to release it now
@@ -80,6 +83,7 @@ public class ConnectionManager {
     public void requestWitness(Connection connection, EventContext ctx) {
         connection.selectCandidate().ifPresentOrElse(
                 candidate -> {
+                    ctx.networkManager().addPeer(ctx, candidate);
                     WitnessRequest msg = new WitnessRequest(connection);
                     NeighborUtils.send(candidate, msg, ctx);
                     connections.release(connection);
@@ -113,7 +117,8 @@ public class ConnectionManager {
         connections.release(connection);
     }
 
-    public void acceptWitness(WitnessSelection selection) {
+    public void acceptWitness(WitnessSelection selection, EventContext ctx) {
+        ctx.networkManager().addPeer(ctx, selection.witness());
         connections.get(selection.connectionId()).ifPresent(connection -> {
             connection.confirmWitness(selection.witness());
             connections.release(connection);

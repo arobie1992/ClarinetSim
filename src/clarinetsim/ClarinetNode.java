@@ -46,7 +46,10 @@ public class ClarinetNode extends SingleValueHolder implements CDProtocol, EDPro
 
         switch(CommonState.r.nextInt(5)) {
             case 0 -> eventContextFactory.networkManager().selectRandomNetworkNode(node)
-                        .ifPresent(receiver -> eventContextFactory.connectionManager().requestConnection(node, receiver, protocolId));
+                        .ifPresent(receiver -> {
+                            eventContextFactory.networkManager().addPeer(node, protocolId, receiver);
+                            eventContextFactory.connectionManager().requestConnection(node, receiver, protocolId);
+                        });
             case 1 -> eventContextFactory.connectionManager().selectRandom(Type.OUTGOING)
                         .map(connection -> eventContextFactory.communicationManager()
                                 .send(node, connection, "Test message", protocolId)

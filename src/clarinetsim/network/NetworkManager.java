@@ -1,15 +1,13 @@
 package clarinetsim.network;
 
+import clarinetsim.context.EventContext;
 import peersim.config.FastConfig;
 import peersim.core.CommonState;
 import peersim.core.Linkable;
 import peersim.core.Node;
 import peersim.core.Network;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,7 +27,7 @@ public class NetworkManager {
             if(initialized) {
                 return;
             }
-            var working = new ArrayList<Node>(Network.size());
+            var working = new ArrayList<Node>(Network.size()-1);
             // if this changes while we're iterating, then things get weird, but as above, network is static for now, so
             // we'll deal with that if it comes up
             for(int i = 0; i < Network.size(); i++) {
@@ -45,8 +43,8 @@ public class NetworkManager {
 
     public Optional<Node> selectRandomNetworkNode(Node node) {
         init(node);
-        int neighborId = CommonState.r.nextInt(networkNodes.size());
-        return Optional.of(networkNodes.get(neighborId));
+        int neighborIndex = CommonState.r.nextInt(networkNodes.size());
+        return Optional.of(networkNodes.get(neighborIndex));
     }
 
     public List<Node> peers(Node node, int protocolId) {
@@ -57,6 +55,20 @@ public class NetworkManager {
             neighbors.add(linkable.getNeighbor(i));
         }
         return Collections.unmodifiableList(neighbors);
+    }
+
+    public void addPeer(Node self, int protocolId, Node nodeToAdd) {
+        int linkableId = FastConfig.getLinkable(protocolId);
+        Linkable linkable = (Linkable) self.getProtocol(linkableId);
+        /* The two implementations of this method existing in the project already do the contains check.
+           See: example.newscast.SimpleNewscast.addNeighbor and peersim.core.IdleProtocol.addNeighbor.
+           The third, peersim.core.OracleIdleProtocol.addNeighbor, does not support this operation so it's moot.
+        */
+        linkable.addNeighbor(nodeToAdd);
+    }
+
+    public void addPeer(EventContext ctx, Node nodeToAdd) {
+        addPeer(ctx.self(), ctx.protocolId(), nodeToAdd);
     }
 
 }

@@ -1,8 +1,6 @@
 package clarinetsim.network;
 
 import clarinetsim.GlobalState;
-import peersim.config.FastConfig;
-import peersim.core.Linkable;
 import peersim.core.Network;
 import peersim.core.Node;
 
@@ -23,13 +21,11 @@ public class MaliciousNetworkManager extends NetworkManager {
             if(initialized) {
                 return;
             }
-            int linkableId = FastConfig.getLinkable(protocolId);
-            Linkable linkable = (Linkable) self.getProtocol(linkableId);
             for(int i = 0; i < Network.size(); i++) {
                 var node = Network.get(i);
                 // all malicious nodes know about each other
-                if(GlobalState.isMalicious(node) && node.getID() != self.getID() && !linkable.contains(node)) {
-                    linkable.addNeighbor(node);
+                if(GlobalState.isMalicious(node) && node.getID() != self.getID()) {
+                    addPeer(self, protocolId, node);
                 }
             }
             initialized = true;
