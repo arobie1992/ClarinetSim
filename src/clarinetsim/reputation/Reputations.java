@@ -3,7 +3,6 @@ package clarinetsim.reputation;
 import peersim.config.Configuration;
 import peersim.core.Node;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -35,15 +34,7 @@ class Reputations {
             return true;
         }
 
-        DistributionStats.Values statsValues;
-        // bit of a leaky abstraction, but the entire benefit of the online standard deviation is that it doesn't
-        // require gathering all the reputation scores and calculating them. If we didn't check this, then we'd still
-        // end up gathering all the reputations every time and lose any benefit of the online method.
-        if(distributionStats.requiresIndividualValues()) {
-            statsValues = distributionStats.values(reputations.values().stream().map(Reputation::value).toList());
-        } else {
-            statsValues = distributionStats.values(Collections.emptyList());
-        }
+        DistributionStats.Values statsValues = distributionStats.values();
         // if standard deviation is present, we want to use both; otherwise, just fall back to minTrusted
         if(statsValues.stdev().isPresent()) {
             return reputation.value() > minTrusted && reputation.value() > (statsValues.mean() - statsValues.stdev().get());
