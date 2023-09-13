@@ -5,7 +5,6 @@ import clarinetsim.math.TraditionalStandardDeviation;
 import peersim.config.Configuration;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -26,44 +25,36 @@ class DistributionStats {
 
     void update(long nodeId, double oldReputation, double newReputation) {
         synchronized(lock) {
-            if(useOnlineStdev) {
-                if(observedNodes.add(nodeId)) {
-                    total += newReputation;
-                } else {
-                    total += (newReputation - oldReputation);
-                }
-                onlineStandardDeviation.update(newReputation);
-            }
-        }
-    }
-
-    double mean(List<Double> reputations) {
-        synchronized(lock) {
-            if(useOnlineStdev) {
-                return total/observedNodes.size();
+            if(observedNodes.add(nodeId)) {
+                total += newReputation;
             } else {
-                var total = reputations.stream().reduce(Double::sum).orElse(null);
-                return total == null ? 0 : total/reputations.size();
+                total += (newReputation - oldReputation);
+            }
+            if(useOnlineStdev) {
+                onlineStandardDeviation.update(newReputation);
+            } else {
+                traditionalStandardDeviation.update(nodeId, newReputation);
             }
         }
     }
 
-    Optional<Double> standardDeviation(List<Double> reputations) {
+    double mean() {
         synchronized(lock) {
-            return useOnlineStdev ? onlineStandardDeviation.get() : traditionalStandardDeviation.calculate(reputations);
+            return total/observedNodes.size();
         }
     }
 
-    Values values(List<Double> reputations) {
+    Optional<Double> standardDeviation() {
         synchronized(lock) {
-            return new Values(mean(reputations), standardDeviation(reputations));
+            return useOnlineStdev ? onlineStandardDeviation.get() : traditionalStandardDeviation.get();
+        }
+    }
+
+    Values values() {
+        synchronized(lock) {
+            return new Values(mean(), standardDeviation());
         }
     }
 
     record Values(double mean, Optional<Double> stdev) {}
-
-    boolean requiresIndividualValues() {
-        return !useOnlineStdev;
-    }
-
 }
