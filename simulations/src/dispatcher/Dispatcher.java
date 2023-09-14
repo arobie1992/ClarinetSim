@@ -17,8 +17,11 @@ public class Dispatcher {
     private final ExecutorService executorService;
 
     public Dispatcher() {
-        var numCores = Runtime.getRuntime().availableProcessors();
-        executorService = Executors.newFixedThreadPool(numCores);
+        // making the relatively unsafe assumption that there are 2 logical processors for each physical core
+        var numProcessors = Runtime.getRuntime().availableProcessors();
+        var numCores = numProcessors/2;
+        // leave one physical core to do other things
+        executorService = Executors.newFixedThreadPool(numCores-1);
     }
 
     public void run() throws InterruptedException {
