@@ -1,6 +1,8 @@
 package dispatcher;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -19,48 +21,29 @@ public class Dispatcher {
         executorService = Executors.newFixedThreadPool(numCores);
     }
 
-    public void run() {
+    public void run() throws InterruptedException {
         var configsDir = new File("configs");
         var configs = Arrays.stream(Objects.requireNonNull(configsDir.listFiles())).sorted(Comparator.comparing(File::getName)).toList();
-        try(
-            var startingWriter = new BufferedWriter(new FileWriter("status/starting.txt"));
-            var completedWriter = new BufferedWriter(new FileWriter("status/completed.txt"))
-        ) {
-            for(var config : configs) {
-                executorService.submit(() -> {
-                    synchronized(startingWriter) {
-                        try {
-                            startingWriter.write(LocalDateTime.now() + ": starting config " + config.getName() + System.lineSeparator());
-                            startingWriter.flush();
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    }
-                    var duration = runConfig(config);
-                    synchronized(completedWriter) {
-                        try {
-                            completedWriter.write(LocalDateTime.now() + ": finished " + config.getName() + " in " + duration + System.lineSeparator());
-                            completedWriter.flush();
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    }
-                });
-            }
-            executorService.shutdown();
-            executorService.awaitTermination(3, TimeUnit.DAYS);
-
-        } catch (IOException|InterruptedException e) {
-            throw new RuntimeException(e);
+        var start = LocalDateTime.now();
+        for(var config : configs) {
+            executorService.submit(() -> {
+                System.out.println(LocalDateTime.now() + ": starting " + config.getName());
+                var duration = runConfig(config);
+                System.out.println(LocalDateTime.now() + ": finished " + config.getName() + " in " + duration);
+            });
+        }
+        executorService.shutdown();
+        if(executorService.awaitTermination(3, TimeUnit.DAYS)) {
+            System.out.println("All sims finished successfully in " + Duration.between(start, LocalDateTime.now()));
+        } else {
+            System.out.println("Timeout occurred before all sims finished");
         }
     }
 
     private Duration runConfig(File config) {
         var outputName = makeOutputName(config.getName());
-        System.out.println(outputName);
-        var cmdFmt = "make run %s > %s";
+        var cmdFmt = "make run %s > %s 2>&1";
         var cmd = String.format(cmdFmt, config.getAbsolutePath(), outputName);
-        System.out.println(cmd);
         try {
             var start = LocalDateTime.now();
             var p = Runtime.getRuntime().exec(cmd, null, new File(".."));
@@ -78,7 +61,7 @@ public class Dispatcher {
         return f.getAbsolutePath() + "/output/results" + configName.substring(configName.indexOf('-'));
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         new Dispatcher().run();
     }
 
