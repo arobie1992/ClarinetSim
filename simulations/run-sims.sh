@@ -1,6 +1,5 @@
 #!/bin/bash
 
-BASE_DIR=simulations
 CONFIGS_DIR=configs
 OUTPUT_DIR=output
 
@@ -99,9 +98,7 @@ done
 # run the experiments
 cd ..
 make release
-for cfg_file in "$BASE_DIR"/"$CONFIGS_DIR"/*; do
-  output_name=$(make_output_file_name "$cfg_file")
-  make run "$cfg_file" > "$BASE_DIR"/"$OUTPUT_DIR"/"$output_name"
-done
+cd simulations || exit 1
+java -cp "src" src/dispatcher/Dispatcher.java
 
 popd || exit 1
