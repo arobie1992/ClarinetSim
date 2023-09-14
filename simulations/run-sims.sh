@@ -4,8 +4,8 @@ CONFIGS_DIR=configs
 OUTPUT_DIR=output
 
 REP_SCHEMES=(PROPORTIONAL)
-NODE_CNTS=(100 500 1000)
-CYCLE_CNTS=(10 100 1000 10000)
+NODE_CNTS=(1000)
+CYCLE_CNTS=(1000)
 COEFF_VALS=(1000)
 MAL_PCTS=(10 50 90)
 MAL_ACT_THRESH_PCTS=(10 50 90)
@@ -55,13 +55,6 @@ pct_to_cnt() {
   echo "$((total*pct/100))"
 }
 
-make_output_file_name() {
-  local cfg_file
-  cfg_file=$1
-  cfg_file="${cfg_file##*/}"
-  echo "results-${cfg_file#*-}"
-}
-
 pushd "$(dirname "$0")" || exit 1
 
 mkdir -p "$CONFIGS_DIR"
@@ -69,6 +62,9 @@ rm -f "$CONFIGS_DIR"/*
 
 mkdir -p "$OUTPUT_DIR"
 rm -f "$OUTPUT_DIR"/*
+
+mkdir -p status
+rm -f status/*
 
 # create the config files
 for rep_scheme in "${REP_SCHEMES[@]}"; do
