@@ -92,6 +92,7 @@ done
 cd ..
 make release
 cd simulations || exit 1
-java -cp "src" src/dispatcher/Dispatcher.java
+javac -cp "src/*" src/dispatcher/DispatchClient.java src/dispatcher/Dispatcher.java
+java -cp "src" dispatcher.Dispatcher
 
 popd || exit 1

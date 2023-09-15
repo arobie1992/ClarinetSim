@@ -3,6 +3,7 @@
 peersim-*/
 doc/
 simulations/configs/
+simulations/client-configs/
 simulations/output/
 simulations/figs/
 ClarinetSim.iml
