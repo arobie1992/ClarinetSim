@@ -1,17 +1,16 @@
 #!/bin/bash
 
-#BASE_DIR=simulations
 CONFIGS_DIR=configs
 OUTPUT_DIR=output
 
 REP_SCHEMES=(PROPORTIONAL)
-NODE_CNTS=(1000)
-CYCLE_CNTS=(10000)
+NODE_CNTS=(100 500 1000)
+CYCLE_CNTS=(10 100 1000 10000)
 COEFF_VALS=(1000)
-MAL_PCTS=(10 20)
+MAL_PCTS=(10 50 90)
 MAL_ACT_THRESH_PCTS=(10 50 90)
 MAL_ACT_PCTS=(0.1 0.5 0.9)
-USE_ONLINE_STDEV_VALS=(false)
+USE_ONLINE_STDEV_VALS=(false true)
 PROP_STRONG_PEN_TYPE=(ADD)
 
 gen_template() {
@@ -97,16 +96,5 @@ cd ..
 make release
 cd simulations || exit 1
 java -cp "src" src/dispatcher/Dispatcher.java
-
-#make_output_file_name() {
-#  local cfg_file
-#  cfg_file=$1
-#  cfg_file="${cfg_file##*/}"
-#  echo "results-${cfg_file#*-}"
-#}
-#for cfg_file in "$BASE_DIR"/"$CONFIGS_DIR"/*; do
-#  output_name=$(make_output_file_name "$cfg_file")
-#  make run "$cfg_file" > "$BASE_DIR"/"$OUTPUT_DIR"/"$output_name"
-#done
 
 popd || exit 1
