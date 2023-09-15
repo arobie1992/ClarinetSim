@@ -37,7 +37,7 @@ class Reputations {
         DistributionStats.Values statsValues = distributionStats.values();
         // if standard deviation is present, we want to use both; otherwise, just fall back to minTrusted
         if(statsValues.stdev().isPresent()) {
-            return reputation.value() > minTrusted && reputation.value() > (statsValues.mean() - statsValues.stdev().get());
+            return reputation.value() > minTrusted && reputation.value() >= (statsValues.mean() - statsValues.stdev().get());
         } else {
             return reputation.value() > minTrusted;
         }
