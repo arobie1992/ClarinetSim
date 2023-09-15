@@ -63,9 +63,6 @@ rm -f "$CONFIGS_DIR"/*
 mkdir -p "$OUTPUT_DIR"
 rm -f "$OUTPUT_DIR"/*
 
-mkdir -p status
-rm -f status/*
-
 # create the config files
 for rep_scheme in "${REP_SCHEMES[@]}"; do
   for node_cnt in "${NODE_CNTS[@]}"; do
