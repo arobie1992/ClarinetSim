@@ -1,6 +1,5 @@
 #!/bin/bash
 
-BASE_DIR=simulations
 CONFIGS_DIR=configs
 OUTPUT_DIR=output
 
@@ -56,13 +55,6 @@ pct_to_cnt() {
   echo "$((total*pct/100))"
 }
 
-make_output_file_name() {
-  local cfg_file
-  cfg_file=$1
-  cfg_file="${cfg_file##*/}"
-  echo "results-${cfg_file#*-}"
-}
-
 pushd "$(dirname "$0")" || exit 1
 
 mkdir -p "$CONFIGS_DIR"
@@ -99,9 +91,7 @@ done
 # run the experiments
 cd ..
 make release
-for cfg_file in "$BASE_DIR"/"$CONFIGS_DIR"/*; do
-  output_name=$(make_output_file_name "$cfg_file")
-  make run "$cfg_file" > "$BASE_DIR"/"$OUTPUT_DIR"/"$output_name"
-done
+cd simulations || exit 1
+java -cp "src" src/dispatcher/Dispatcher.java
 
 popd || exit 1

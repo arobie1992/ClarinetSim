@@ -114,7 +114,7 @@ class Parser {
     private readonly mal = String.raw`mal: (?<${this.mal_grp}>${this.agg})`;
     private readonly neighbors = String.raw`repWithNeighbors: (?<${this.neighbors_grp}>${this.agg})`;
     private readonly total = String.raw`total: (?<${this.total_grp}>${this.agg})`;
-    private readonly indv = String.raw`(?:\[[-\sa-z\d:]*\]|<omitted>)`;
+    private readonly indv = String.raw`(?:\[[-\sa-z\d:\.]*\]|<omitted>)`;
     private readonly coop_ind = String.raw`individualCoop: (?<${this.coop_ind_grp}>${this.indv})`;
     private readonly mal_ind = String.raw`individualMal: (?<${this.mal_ind_grp}>${this.indv})`;
     private readonly neighbors_ind = String.raw`individualRepWithNeighbors: (?<${this.neighbors_ind_grp}>${this.indv})`;
@@ -122,7 +122,7 @@ class Parser {
     private readonly node_info = String.raw`(?<${this.node_info_grp}>${this.node}|${this.grandTotal})`;
     private readonly regexp = new RegExp(`${this.node_info} ${this.body}`, 'g');
 
-    private readonly num = String.raw`-?\d+(?:\.\d*)?`;
+    private readonly num = String.raw`-?\d+(?:\.\d*)?|NaN`;
     private readonly agg_sep = String.raw`${this.nl}\s{8}`;
     private readonly avg_grp = "avg";
     private readonly med_grp = "med";
@@ -182,7 +182,7 @@ class Parser {
         const numCoopBelow = match.groups!![this.coop_below_grp];
         const numMalBelow = match.groups!![this.mal_below_grp];
         const numMalActedMaliciously = match.groups!![this.mal_acted_grp];
-        return new NodeTotalStats(avg, med, stdev, numCoopBelow, numMalBelow, numMalActedMaliciously);
+        return new NodeTotalStats(avg, med, stdev, numCoopBelow, numMalBelow, numMalActedMaliciously);    
     }
 
     private parseIndividual(str: string): Array<PeerInfo> {
@@ -248,7 +248,7 @@ class PermutationInfo {
             || a.proportionalStrongPenType.localeCompare(b.proportionalStrongPenType);
     }
     toCsvRow(): string {
-        return `${this.reputationScheme},${this.nodeCount},${this.cycleCount},${this.coefficientValue},${this.malPercent},${this.malActionThresholdPercent},${this.malActionPercent},${this.onlineStdev},${this.proportionalStrongPenType}`;
+        return `${this.reputationScheme},${this.nodeCount},${this.cycleCount},${this.coefficientValue},${this.malPercent},${this.malActionThresholdPercent},${this.malActionPercent},${this.useOnlineStdev},${this.proportionalStrongPenType}`;
     }
 }
 
