@@ -1,8 +1,6 @@
 package dispatcher;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -52,9 +50,8 @@ public class Dispatcher {
             var p = Runtime.getRuntime().exec(cmd, null, new File(".."));
             p.waitFor();
             return Duration.between(start, LocalDateTime.now());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
             throw new RuntimeException(e);
         }
     }
