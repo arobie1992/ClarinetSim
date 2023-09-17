@@ -34,7 +34,7 @@ protocol.clarinet.reputation.proportional.eval_threshold 1
 protocol.clarinet.reputation.proportional.strong_type ${prop_strong_pen_type}
 protocol.clarinet.reputation.use_online_stdev ${use_online_stdev}
 protocol.clarinet.weak_penalty_value 1
-protocol.clarinet.strong_penalty_value 3
+protocol.clarinet.strong_penalty_value 10
 protocol.clarinet.print_interval 3
 protocol.clarinet.print_connections false
 protocol.clarinet.print_log false
