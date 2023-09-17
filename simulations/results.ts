@@ -10,8 +10,8 @@ class ReputationStats {
         this.med = +med || 0;
         this.min = +min || 0;
         this.max = +max || 0;
-        this.numTrusted = +numTrusted || -1;
-        this.numTotal = +numTotal || -1;
+        this.numTrusted = +numTrusted;
+        this.numTotal = +numTotal;
     }
 }
 
