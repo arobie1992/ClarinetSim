@@ -49,15 +49,19 @@ public class MessageHandler {
                 .ifPresent(ctx.connectionManager()::release);
     }
 
+    public void handle(DataForward msg, EventContext ctx) {
+        ctx.reputationManager().senderReview(msg, ctx);
+    }
+
     public void handle(Query msg, EventContext ctx) {
         ctx.communicationManager().find(msg).ifPresent(logEntry -> ctx.communicationManager().reply(msg, logEntry, ctx));
     }
 
     public void handle(QueryResponse msg, EventContext ctx) {
-        ctx.reputationManager().review(msg, ctx).ifPresent(r -> ctx.communicationManager().forward(r, ctx));
+        ctx.reputationManager().queryReview(msg, ctx).ifPresent(r -> ctx.communicationManager().forward(r, ctx));
     }
 
     public void handle(QueryForward msg, EventContext ctx) {
-        ctx.reputationManager().review(msg, ctx);
+        ctx.reputationManager().queryForwardReview(msg, ctx);
     }
 }

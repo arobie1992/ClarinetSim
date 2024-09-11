@@ -27,14 +27,6 @@ protocol.clarinet.linkable link
 protocol.clarinet.step CYCLE
 protocol.clarinet.transport tr
 protocol.clarinet.max_connections 15
-protocol.clarinet.reputation.min_trusted ${min_trusted}
-protocol.clarinet.reputation.type ${rep_scheme}
-protocol.clarinet.reputation.subtractive.initial 100
-protocol.clarinet.reputation.proportional.eval_threshold 1
-protocol.clarinet.reputation.proportional.strong_type ${prop_strong_pen_type}
-protocol.clarinet.reputation.use_online_stdev ${use_online_stdev}
-protocol.clarinet.weak_penalty_value 1
-protocol.clarinet.strong_penalty_value 3
 protocol.clarinet.print_interval 3
 protocol.clarinet.print_connections false
 protocol.clarinet.print_log false
@@ -43,7 +35,6 @@ protocol.clarinet.num_malicious ${num_mal_nodes}
 protocol.clarinet.malicious_action_threshold ${mal_act_thresh}
 # between 0 and 1 inclusive; 0 means they never act malicious and 1 means they act malicious 100% of the time
 protocol.clarinet.malicious_action_percentage ${mal_act_pct}
-protocol.clarinet.metrics.print_individual false
 
 
 protocol.urt UniformRandomTransport

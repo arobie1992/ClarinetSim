@@ -7,7 +7,6 @@ import peersim.core.Node;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -58,70 +57,13 @@ public class MetricsAggregator {
         }
     }
 
-    private static class IndividualReputationInformation extends ReputationInformation<Long> {}
-
-    private static class AggregatedReputationInformation extends ReputationInformation<String> {
-        @Override public String toString() {
-            var sj = new StringJoiner(System.lineSeparator());
-            sj.add("{");
-            coop.addAggregated(sj, "coop");
-            mal.addAggregated(sj, "mal");
-            withNeighbors.addAggregated(sj, "repWithNeighbors");
-
-            var avg = avg();
-            sj.add("    total: {");
-            sj.add("        average: " + avg);
-            sj.add("        median: " + median());
-            // the standard deviation calculations weren't correct and can calulate it with fields in results.ts, so
-            // just do it there instead and print filler values here so the parsing doesn't break
-            sj.add("        stdev: -1");
-            sj.add("        numCoopBelow: -1");
-            sj.add("        numMalBelow: -1");
-            sj.add("        numMalActedMaliciously: -1");
-            sj.add("    }");
-
-            coop.addIndividuals(sj, "individualCoop");
-            mal.addIndividuals(sj, "individualMal");
-            withNeighbors.addIndividuals(sj, "individualRepWithNeighbors");
-            sj.add("}");
-            return sj.toString();
-        }
-    }
-
     private static void printMetrics() {
-        var totalReputationInfo = new AggregatedReputationInformation();
-        var reputationInfos = new IndividualReputationInformation[eventContextFactories.length];
-
         for(int i = 0; i < eventContextFactories.length; i++) {
-            reputationInfos[i] = new IndividualReputationInformation();
+            EventContextFactory eventContextFactory = eventContextFactories[i];
+            var messageAssessments = eventContextFactory.reputationManager().getMessageAssessments();
+            System.out.println("Node " + i + "(" + (GlobalState.isMalicious(i) ? "mal" : "coop") + ") message assessments: " + messageAssessments);
+            eventContextFactory.connectionManager().printConnections(new IdOnlyNode(i));
         }
-
-        for(int i = 0; i < eventContextFactories.length; i++) {
-            var curr = reputationInfos[i];
-            for(var e : eventContextFactories[i].reputationManager().reputations().entrySet()) {
-                long neighborId = e.getKey();
-                double reputation = e.getValue();
-                var totalId = i + "-" + neighborId;
-                var trusted = eventContextFactories[i].reputationManager().evaluate(new IdOnlyNode(neighborId));
-                if(GlobalState.isMalicious(neighborId)) {
-                    curr.addMalicious(neighborId, reputation, trusted);
-                    totalReputationInfo.addMalicious(totalId, reputation, trusted);
-                } else {
-                    curr.addCooperative(neighborId, reputation, trusted);
-                    totalReputationInfo.addCooperative(totalId, reputation, trusted);
-                }
-                var peerTrusts = eventContextFactories[Math.toIntExact(neighborId)].reputationManager().evaluate(new IdOnlyNode(i));
-                reputationInfos[Math.toIntExact(neighborId)].withNeighbors.add((long) i, reputation, peerTrusts);
-            }
-        }
-
-        for(int i = 0; i < reputationInfos.length; i++) {
-            var repInfo = reputationInfos[i];
-            var malInfo = GlobalState.isMalicious(i) ? " (malicious) " : " (cooperative) ";
-            System.out.println("Node " + i + malInfo + repInfo);
-        }
-        System.out.println("Grand Total " + totalReputationInfo);
-
     }
 
 }

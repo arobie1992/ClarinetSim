@@ -23,8 +23,8 @@ public class EventContextFactory {
     private volatile boolean initialized = false;
     private ConnectionManager connectionManager;
     private CommunicationManager communicationManager;
-    private ReputationManager reputationManager;
     private NetworkManager networkManager;
+    private ReputationManager reputationManager;
 
     public EventContextFactory(String prefix) {
         this.prefix = prefix;
@@ -44,12 +44,12 @@ public class EventContextFactory {
             if(GlobalState.isMalicious(node)) {
                 this.connectionManager = new MaliciousConnectionManager(maxConnections);
                 this.communicationManager = new MaliciousCommunicationManager(prefix);
-                this.reputationManager = new MaliciousReputationManager(prefix);
+                this.reputationManager = new MaliciousReputationManager();
                 this.networkManager = new MaliciousNetworkManager();
             } else {
                 this.connectionManager = new ConnectionManager(maxConnections);
                 this.communicationManager = new CommunicationManager();
-                this.reputationManager = new ReputationManager(prefix);
+                this.reputationManager = new ReputationManager();
                 this.networkManager = new NetworkManager();
             }
             initialized = true;

@@ -2,7 +2,7 @@
 SIZE 10
 
 # parameters of periodic execution
-CYCLES 100
+CYCLES 10
 CYCLE SIZE*10
 
 # parameters of message transfer
@@ -27,23 +27,14 @@ protocol.clarinet.linkable link
 protocol.clarinet.step CYCLE
 protocol.clarinet.transport tr
 protocol.clarinet.max_connections 15
-protocol.clarinet.reputation.min_trusted 50
-protocol.clarinet.reputation.type PROPORTIONAL
-protocol.clarinet.reputation.subtractive.initial 100
-protocol.clarinet.reputation.proportional.eval_threshold 1
-protocol.clarinet.reputation.proportional.strong_type ADD
-protocol.clarinet.reputation.use_online_stdev true
-protocol.clarinet.weak_penalty_value 1
-protocol.clarinet.strong_penalty_value 3
 protocol.clarinet.print_interval 3
 protocol.clarinet.print_connections false
 protocol.clarinet.print_log false
 protocol.clarinet.print_reputations false
 protocol.clarinet.num_malicious SIZE/2
-protocol.clarinet.malicious_action_threshold CYCLES/2
+protocol.clarinet.malicious_action_threshold 0
 # between 0 and 1 inclusive; 0 means they never act malicious and 1 means they act malicious 100% of the time
-protocol.clarinet.malicious_action_percentage 0.5
-protocol.clarinet.metrics.print_individual false
+protocol.clarinet.malicious_action_percentage 1
 
 protocol.urt UniformRandomTransport
 protocol.urt.mindelay (CYCLE*MINDELAY)/100

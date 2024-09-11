@@ -28,17 +28,7 @@ To build the application run `make release` from the project root.
 
 Config values include the following:
 
-- protocol.avg.max_connections 1
-- protocol.avg.initial_reputation 100 
-- protocol.avg.min_trusted_reputation 0 
-- protocol.avg.weak_penalty_value 1 
-- protocol.avg.strong_penalty_value 3
-- protocol.avg.print_interval 1
-- protocol.avg.print_connections false
-- protocol.avg.print_log false 
-- protocol.avg.print_reputations false
-- protocol.avg.num_malicious 0
-- protocol.avg.metrics.print_individual false
+TBD
 
 Values provided with them are the defaults. Using `avg` was just a matter of expedience since it worked and didn't harm
 things rather than figuring out how to set up a new protocol name. I should probably fix this.
@@ -46,6 +36,8 @@ things rather than figuring out how to set up a new protocol name. I should prob
 To run a simulation run `make run {path to your cfg file}`. For example `make run ./myconfig.txt`.
 
 ### Run Multiple Simulations
+
+TODO -- rewrite this
 
 If you would like to run a series of simulations, you can use `simulations/run-sims.sh`. The script has several sets of
 values toward the top. Values here are demonstrative and not necessarily what is currently in the script.
@@ -95,55 +87,7 @@ and results files will be `len(NODE_CNTS) * len(CYCLE_CNTS) * len(COEFF_VALS) * 
 
 ## Metrics
 
-At the end of each run (or thereabouts), reputation metrics will be printed for each node. A sample is shown below.
-
-The parenthetical indicates whether the node is cooperative or malicious. The `coop` and `mal` fields are the node's own
-stats about its peers—as you will likely see, malicious nodes do not do any reputation tracking. The `repWithNeighbors` 
-is the stats from all the peers about the node itself. The individual sections can be quite long if there are a large 
-number of nodes. You can omit these by setting `protocol.avg.metrics.print_individual` to `false` in the config file. 
-This will replace the array with `<omitted>`, for example `individualCoop: <omitted>`.
-```
-Node 8 (cooperative) {
-    coop: {
-        average: 97
-        median: 99
-        min: 95
-        max: 100
-    }
-    mal: {
-        average: 84
-        median: 95
-        min: 71
-        max: 99
-    }
-    repWithNeighbors: {
-        average: 98
-        median: 99
-        min: 96
-        max: 100
-    }
-    individualCoop: [
-        node 4: 96
-        node 5: 99
-        node 6: 95
-        node 7: 99
-        node 9: 100
-    ]
-    individualMal: [
-        node 0: 71
-        node 1: 95
-        node 2: 99
-        node 3: 74
-    ]
-    individualRepWithNeighbors: [
-        node 4: 98
-        node 5: 100
-        node 6: 96
-        node 7: 100
-        node 9: 99
-    ]
-}
-```
+TODO
 
 ## Committing
 

@@ -50,14 +50,17 @@ public class CommunicationManager {
                 return;
             }
             var fwd = new QueryForward(queryResponse, ctx.self(), Signature.VALID);
-            NeighborUtils.send(recipient.get(0), fwd, ctx);
+            NeighborUtils.send(recipient.getFirst(), fwd, ctx);
             log.add(fwd);
         });
     }
 
     public Connection receive(Connection connection, Data message, EventContext ctx) {
         log.add(ctx.self(), connection, message);
-        ctx.reputationManager().review(connection, message);
+        if(ctx.reputationManager().receiverReview(connection, message)) {
+            var messageForward = new DataForward(message, Signature.VALID);
+            NeighborUtils.send(connection.sender(), messageForward, ctx);
+        }
         return connection;
     }
 
