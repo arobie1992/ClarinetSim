@@ -1,6 +1,6 @@
 package clarinetsim.connection;
 
-enum State {
+public enum State {
     REQUESTING_RECEIVER,
     REQUESTING_WITNESS,
     OPEN,
