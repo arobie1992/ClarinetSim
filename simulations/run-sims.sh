@@ -11,26 +11,26 @@ MAL_ACT_THRESH_PCTS=(10 50 90)
 MAL_ACT_PCTS=(0.1 0.5 0.9)
 
 gen_template() {
-      local num_nodes=$1
-      local num_cycles=$2
-      local cycle_coeff=$3
-      local mal_pct=$4
-      local num_mal_nodes
-      num_mal_nodes=$(pct_to_cnt "$num_nodes" "$mal_pct")
-      local mal_act_thresh_pct=$5
-      local mal_act_thresh
-      mal_act_thresh=$(pct_to_cnt "$num_cycles" "$mal_act_thresh_pct")
-      local mal_act_pct=$6
+  local num_nodes=$1
+  local num_cycles=$2
+  local cycle_coeff=$3
+  local mal_pct=$4
+  local num_mal_nodes
+  num_mal_nodes=$(pct_to_cnt "$num_nodes" "$mal_pct")
+  local mal_act_thresh_pct=$5
+  local mal_act_thresh
+  mal_act_thresh=$(pct_to_cnt "$num_cycles" "$mal_act_thresh_pct")
+  local mal_act_pct=$6
 
-      local template
-      template=$(cat "template.txt")
-      template="${template//\$\{num_nodes\}/$num_nodes}"
-      template="${template//\$\{num_cycles\}/$num_cycles}"
-      template="${template//\$\{cycle_coeff\}/$cycle_coeff}"
-      template="${template//\$\{num_mal_nodes\}/$num_mal_nodes}"
-      template="${template//\$\{mal_act_thresh\}/$mal_act_thresh}"
-      template="${template//\$\{mal_act_pct\}/$mal_act_pct}"
-      echo "$template" > "$CONFIGS_DIR"/config-"$num_nodes"-"$num_cycles"-"$cycle_coeff"-"$mal_pct"-"$mal_act_thresh_pct"-"$mal_act_pct".txt
+  local template
+  template=$(cat "template.txt")
+  template="${template//\$\{num_nodes\}/$num_nodes}"
+  template="${template//\$\{num_cycles\}/$num_cycles}"
+  template="${template//\$\{cycle_coeff\}/$cycle_coeff}"
+  template="${template//\$\{num_mal_nodes\}/$num_mal_nodes}"
+  template="${template//\$\{mal_act_thresh\}/$mal_act_thresh}"
+  template="${template//\$\{mal_act_pct\}/$mal_act_pct}"
+  echo "$template" > "$CONFIGS_DIR"/config-"$num_nodes"-"$num_cycles"-"$cycle_coeff"-"$mal_pct"-"$mal_act_thresh_pct"-"$mal_act_pct".txt
 }
 
 pct_to_cnt() {
