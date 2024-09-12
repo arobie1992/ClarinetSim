@@ -35,7 +35,11 @@ protocol.clarinet.num_malicious ${num_mal_nodes}
 protocol.clarinet.malicious_action_threshold ${mal_act_thresh}
 # between 0 and 1 inclusive; 0 means they never act malicious and 1 means they act malicious 100% of the time
 protocol.clarinet.malicious_action_percentage ${mal_act_pct}
-
+protocol.clarinet.metrics.include_assessments false
+protocol.clarinet.metrics.include_individual true
+protocol.clarinet.metrics.include_messages false
+protocol.clarinet.metrics.pretty_print false
+protocol.clarinet.metrics.write_targets file
 
 protocol.urt UniformRandomTransport
 protocol.urt.mindelay (CYCLE*MINDELAY)/100
