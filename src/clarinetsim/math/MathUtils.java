@@ -15,6 +15,10 @@ public class MathUtils {
     }
 
     public static double standardDeviation(Collection<Double> values) {
+        if(values.size() < 2) {
+            return 0.0;
+        }
+
         var mean = mean(values);
 
         // The variance

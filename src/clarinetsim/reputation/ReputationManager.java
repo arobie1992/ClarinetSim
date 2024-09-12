@@ -56,7 +56,7 @@ public class ReputationManager {
 
     public List<Node> trusted(Collection<Node> peers) {
         var peerReps = getReputations(peers);
-        var mean = MathUtils.standardDeviation(peerReps.values());
+        var mean = MathUtils.mean(peerReps.values());
         var std = MathUtils.standardDeviation(peerReps.values());
         var threshold = mean - std;
         var trusted = peerReps.entrySet().stream()
