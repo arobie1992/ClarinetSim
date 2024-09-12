@@ -38,6 +38,8 @@ protocol.clarinet.malicious_action_percentage 1
 protocol.clarinet.metrics.include_assessments true
 protocol.clarinet.metrics.include_individual true
 protocol.clarinet.metrics.include_messages true
+protocol.clarinet.metrics.pretty_print true
+protocol.clarinet.metrics.write_targets stdout
 
 protocol.urt UniformRandomTransport
 protocol.urt.mindelay (CYCLE*MINDELAY)/100

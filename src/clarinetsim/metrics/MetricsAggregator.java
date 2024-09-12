@@ -10,6 +10,11 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import peersim.config.Configuration;
 import peersim.core.Node;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -51,7 +56,11 @@ public class MetricsAggregator {
                 currentCycle++;
                 seenThisCycle.clear();
                 if(currentCycle == numCycles) {
-                    printMetrics();
+                    try {
+                        printMetrics();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
                 }
             }
         }
@@ -140,7 +149,7 @@ public class MetricsAggregator {
         }).toList();
     }
 
-    private static void printMetrics() {
+    private static void printMetrics() throws IOException {
 
         var nodeReps = new LinkedHashMap<Long, Map<Long, PeerInfo>>();
         var nodeWithPeers = new LinkedHashMap<Long, Map<Long, PeerInfo>>();
@@ -178,11 +187,35 @@ public class MetricsAggregator {
             ));
         }
 
+        var om = new ObjectMapper().registerModule(new Jdk8Module());
+        String stringified;
         try {
-            var om = new ObjectMapper().registerModule(new Jdk8Module());
-            System.out.println(om.writeValueAsString(nodeMetrics));
+            var prettyPrint = Configuration.getBoolean("protocol.clarinet.metrics.pretty_print", false);
+            if(prettyPrint) {
+                stringified = om.writerWithDefaultPrettyPrinter().writeValueAsString(nodeMetrics);
+            } else {
+                stringified = om.writeValueAsString(nodeMetrics);
+            }
+
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+
+        var writeTargetsRaw = Configuration.getString("protocol.clarinet.metrics.write_targets", "stdout");
+        var writeTargets = Arrays.asList(writeTargetsRaw.split(","));
+        if(writeTargets.contains("stdout")) {
+            System.out.println(stringified);
+        }
+        if(writeTargets.contains("file")) {
+            var numMalicious = Configuration.getInt("protocol.clarinet.num_malicious");
+            var malActThresh = Configuration.getInt("protocol.clarinet.malicious_action_threshold");
+            var malActPct = Configuration.getDouble("protocol.clarinet.malicious_action_percentage");
+            var time = LocalDateTime.now().toString().replaceAll(":", "_");
+            var fileName = String.format("simulationOutput-count%d-cycles%d-mal%d-thresh%d-pct%f-time%s.json",
+                    numNodes, numCycles, numMalicious, malActThresh, malActPct, time);
+            try(var writer = new PrintWriter(fileName, StandardCharsets.UTF_8)) {
+                writer.println(stringified);
+            }
         }
     }
 
