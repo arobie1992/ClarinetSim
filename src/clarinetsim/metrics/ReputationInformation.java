@@ -7,6 +7,12 @@ public record ReputationInformation(
         double standardDeviation,
         long totalPeers,
         long numTrusted,
-        long numNotTrusted
+        long numUntrusted,
+        long numMessages,
+        long numMessagesWithTrusted,
+        long numMessagesWithUntrusted,
+        long numAssessments,
+        long numAssessmentsOfTrusted,
+        long numAssessmentsOfUntrusted
 ) {
 }

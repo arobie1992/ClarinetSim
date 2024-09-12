@@ -1,6 +1,6 @@
 package clarinetsim.metrics;
 
-import java.util.List;
+import java.util.Collection;
 
 public record NodeMetrics(
         long id,
@@ -9,6 +9,6 @@ public record NodeMetrics(
         ReputationInformation allPeers,
         ReputationInformation cooperativePeers,
         ReputationInformation maliciousPeers,
-        List<PeerInfo> individualPeers
+        Collection<PeerInfo> individualPeers
 ) {
 }

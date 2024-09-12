@@ -8,6 +8,7 @@ import clarinetsim.message.*;
 import clarinetsim.reputation.Signature;
 import peersim.core.Node;
 
+import java.util.List;
 import java.util.Optional;
 
 public class CommunicationManager {
@@ -107,6 +108,10 @@ public class CommunicationManager {
      */
     Log log() {
         return log;
+    }
+
+    public List<LogEntry> allMessages() {
+        return log.all();
     }
 
     public void printLog(Node node) {
