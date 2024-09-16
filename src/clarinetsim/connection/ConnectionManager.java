@@ -7,7 +7,6 @@ import peersim.core.Node;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ConnectionManager {
 
@@ -67,10 +66,11 @@ public class ConnectionManager {
         // if we didn't get the connection, then it's been terminated so we can just pass the buck up
         return connections.get(response.connectionId()).map(connection -> {
             connection.receiverConfirmed();
-            List<Node> candidates = ctx.networkManager().peers(ctx.self(), ctx.protocolId()).stream()
-                    .filter(n -> ctx.reputationManager().evaluate(n))
+            List<Node> candidates = ctx.reputationManager()
+                    .trusted(ctx.networkManager().peers(ctx.self(), ctx.protocolId()))
+                    .stream()
                     .filter(n -> n.getID() != connection.receiver().getID())
-                    .collect(Collectors.toList());
+                    .toList();
             connection.addWitnessCandidates(candidates);
             return connection;
         });

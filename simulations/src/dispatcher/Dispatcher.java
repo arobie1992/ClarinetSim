@@ -42,7 +42,7 @@ public class Dispatcher {
     }
 
     private Duration runConfig(File config) {
-        var outputName = makeOutputName(config.getName());
+        var outputName = makeLogName(config.getName());
         var cmdFmt = "make run %s > %s 2>&1";
         var cmd = String.format(cmdFmt, config.getAbsolutePath(), outputName);
         try {
@@ -56,9 +56,9 @@ public class Dispatcher {
         }
     }
 
-    private String makeOutputName(String configName) {
+    private String makeLogName(String configName) {
         var f = new File("");
-        return f.getAbsolutePath() + "/output/results" + configName.substring(configName.indexOf('-'));
+        return f.getAbsolutePath() + "/logs/log" + configName.substring(configName.indexOf('-'));
     }
 
     public static void main(String[] args) throws InterruptedException {

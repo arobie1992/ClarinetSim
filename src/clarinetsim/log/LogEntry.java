@@ -32,6 +32,10 @@ public class LogEntry {
         return sender.node;
     }
 
+    public Node witness() {
+        return witness.node;
+    }
+
     public Node receiver() {
         return receiver.node;
     }

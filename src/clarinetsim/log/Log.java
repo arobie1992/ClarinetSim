@@ -76,6 +76,10 @@ public class Log {
         }
     }
 
+    public List<LogEntry> all() {
+        return new ArrayList<>(log.values());
+    }
+
     @Override public String toString() {
         return "Log { data: " + log
                 + ", queries: " + queryLog
