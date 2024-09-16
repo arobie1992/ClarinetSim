@@ -7,6 +7,10 @@ public class MathUtils {
     private MathUtils() {}
 
     public static double mean(Collection<Double> values) {
+        if(values.isEmpty()) {
+            return 0;
+        }
+
         var mean = 0.0;
         for(var i : values) {
             mean += i;

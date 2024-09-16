@@ -2,6 +2,7 @@
 
 CONFIGS_DIR=configs
 OUTPUT_DIR=output
+LOGS_DIR=logs
 
 NODE_CNTS=(100 500 1000)
 CYCLE_CNTS=(10 100 1000 10000)
@@ -46,6 +47,9 @@ rm -f "$CONFIGS_DIR"/*
 
 mkdir -p "$OUTPUT_DIR"
 rm -f "$OUTPUT_DIR"/*
+
+mkdir -p "$LOGS_DIR"
+rm -f "$LOGS_DIR"/*
 
 # create the config files
 for node_cnt in "${NODE_CNTS[@]}"; do

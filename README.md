@@ -28,10 +28,7 @@ To build the application run `make release` from the project root.
 
 Config values include the following:
 
-TBD
-
-Values provided with them are the defaults. Using `avg` was just a matter of expedience since it worked and didn't harm
-things rather than figuring out how to set up a new protocol name. I should probably fix this.
+TODO -- rewrite this
 
 To run a simulation run `make run {path to your cfg file}`. For example `make run ./myconfig.txt`.
 

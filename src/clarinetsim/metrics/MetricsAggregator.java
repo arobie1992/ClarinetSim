@@ -1,8 +1,8 @@
 package clarinetsim.metrics;
 
 import clarinetsim.GlobalState;
-import clarinetsim.MathUtils;
 import clarinetsim.context.EventContextFactory;
+import clarinetsim.math.MathUtils;
 import clarinetsim.reputation.MessageAssessment;
 import clarinetsim.reputation.ReputationManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -88,10 +88,10 @@ public class MetricsAggregator {
         var trusted = peers.stream().filter(PeerInfo::trusted).toList();
         var untrusted = peers.stream().filter(p -> !p.trusted()).toList();
         return new ReputationInformation(
-                MathUtils.average(reps),
+                MathUtils.mean(reps),
                 reps.stream().min(Double::compareTo).orElse(-1.0),
                 reps.stream().max(Double::compareTo).orElse(-1.0),
-                MathUtils.stdev(reps),
+                MathUtils.standardDeviation(reps),
                 peers.size(),
                 trusted.size(),
                 untrusted.size(),
@@ -207,13 +207,16 @@ public class MetricsAggregator {
             System.out.println(stringified);
         }
         if(writeTargets.contains("file")) {
+            var outputPath = Configuration.getString("protocol.clarinet.metrics.output_path", "");
+            outputPath = outputPath.isEmpty() || outputPath.endsWith("/") ? outputPath : outputPath + "/";
             var numMalicious = Configuration.getInt("protocol.clarinet.num_malicious");
             var malActThresh = Configuration.getInt("protocol.clarinet.malicious_action_threshold");
             var malActPct = Configuration.getDouble("protocol.clarinet.malicious_action_percentage");
             var time = LocalDateTime.now().toString().replaceAll(":", "_");
             var fileName = String.format("simulationOutput-count%d-cycles%d-mal%d-thresh%d-pct%f-time%s.json",
                     numNodes, numCycles, numMalicious, malActThresh, malActPct, time);
-            try(var writer = new PrintWriter(fileName, StandardCharsets.UTF_8)) {
+            var outputFile = outputPath + fileName;
+            try(var writer = new PrintWriter(outputFile, StandardCharsets.UTF_8)) {
                 writer.println(stringified);
             }
         }

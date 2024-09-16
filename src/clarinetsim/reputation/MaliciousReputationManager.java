@@ -21,8 +21,7 @@ public class MaliciousReputationManager extends ReputationManager {
 
     // noop
     @Override
-    public void witnessReview(Connection connection, Data message) {
-    }
+    public void witnessReview(Connection connection, Data message) {}
 
     // noop and never want to forward
     @Override
