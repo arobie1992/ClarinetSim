@@ -12,12 +12,15 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Dispatcher {
 
     private static FileWriter logFile;
 
     private final ExecutorService executorService;
+    private int totalConfigs;
+    private final AtomicInteger counter = new AtomicInteger(0);
 
     public Dispatcher() {
         // making the relatively unsafe assumption that there are 2 logical processors for each physical core
@@ -30,13 +33,15 @@ public class Dispatcher {
     public void run() {
         var configsDir = new File("configs");
         var configs = Arrays.stream(Objects.requireNonNull(configsDir.listFiles())).sorted(Comparator.comparing(File::getName)).toList();
+        totalConfigs = configs.size();
         var start = LocalDateTime.now();
         for(var config : configs) {
             executorService.submit(() -> {
-                log(LocalDateTime.now() + ": starting " + config.getName());
+                var count = "(" + counter.incrementAndGet() + "/" + totalConfigs + ") ";
+                log(LocalDateTime.now() + ": starting " + count + config.getName());
                 var result = runConfig(config);
                 var runStatus = result.exitCode == 0 ? " succeeded " : " failed " + result.exitCode;
-                log(LocalDateTime.now() + ": finished " + config.getName() + ": " + runStatus + " in " + result.duration);
+                log(LocalDateTime.now() + ": finished " + count + config.getName() + ": " + runStatus + " in " + result.duration);
             });
         }
         executorService.shutdown();
@@ -76,7 +81,8 @@ public class Dispatcher {
 
     private static void log(String message) {
         try {
-            logFile.append(message).append('\n');
+            // flush every line because I'm impatient
+            logFile.append(message).append('\n').flush();
         } catch (IOException e) {
             e.printStackTrace(System.err);
         }
@@ -96,6 +102,10 @@ public class Dispatcher {
             new Dispatcher().run();
         } catch (Throwable e) {
             log(e);
+        } finally {
+            if(logFile != null) {
+                logFile.close();
+            }
         }
     }
 
